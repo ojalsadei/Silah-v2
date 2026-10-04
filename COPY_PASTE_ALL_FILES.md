@@ -2,6 +2,8 @@
 
 هذا الملف مجمع للرجوع السريع. النسخة المضغوطة هي الأسهل للتشغيل.
 
+تاريخ التجميع: 2026-10-04
+
 ## `.env.example`
 
 `````text
@@ -21,6 +23,115 @@ node_modules/
 .DS_Store
 *.log
 coverage/
+`````
+
+## `package.json`
+
+`````text
+{
+  "name": "silah-semantic-ai-poc",
+  "version": "7.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test tests/*.test.js",
+    "preflight": "node scripts/preflight.js",
+    "check": "node scripts/preflight.js && node --test tests/*.test.js",
+    "test:100:http": "node tests/run100_http.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
+`````
+
+## `render.yaml`
+
+`````text
+services:
+  - type: web
+    name: silah-govtech-prototype
+    runtime: node
+    buildCommand: ""
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: PORT
+        value: 10000
+`````
+
+## `SETUP_AND_START.cmd`
+
+`````text
+@echo off
+setlocal EnableExtensions EnableDelayedExpansion
+cd /d "%~dp0"
+
+echo.
+echo ================================
+echo       Silah local setup
+echo ================================
+echo.
+
+where node >nul 2>nul
+if errorlevel 1 (
+  echo Node.js is not installed or not available in PATH.
+  echo Install Node.js 20 or newer, then run this file again.
+  pause
+  exit /b 1
+)
+
+if not exist .env (
+  echo Paste your Groq API key below. It will be saved only in local .env.
+  echo The .env file is ignored by Git and should not be uploaded to GitHub.
+  echo.
+  set /p GROQKEY=Groq API key: 
+  if not defined GROQKEY (
+    echo No key entered. Setup stopped.
+    pause
+    exit /b 1
+  )
+  > .env echo GROQ_API_KEY=!GROQKEY!
+  >> .env echo GROQ_MODEL=openai/gpt-oss-20b
+  >> .env echo GROQ_TIMEOUT_MS=8500
+  >> .env echo PORT=3000
+  echo.
+  echo Local .env created.
+) else (
+  echo Existing local .env found. It will be used as is.
+)
+
+echo.
+echo Running project checks...
+call npm run check
+if errorlevel 1 (
+  echo.
+  echo Checks failed. Review the messages above before starting.
+  pause
+  exit /b 1
+)
+
+echo.
+echo Starting Silah...
+echo Open http://localhost:3000 after the server starts.
+echo Press Ctrl+C to stop the server.
+echo.
+call npm start
+`````
+
+## `RUN_TESTS.cmd`
+
+`````text
+@echo off
+cd /d "%~dp0"
+call npm run check
+pause
 `````
 
 ## `data/benchmarks.json`
@@ -99,7 +210,40 @@ coverage/
         "url": "https://www.tech.gov.sg/technews/moments-of-life-is-now-lifesg-story-so-far/"
       }
     ],
-    "sourceDate": "2026-10-03"
+    "sourceDate": "2026-10-04",
+    "problem": "الخدمات الحكومية كانت موزعة حسب الجهة، بينما احتياج الشخص يظهر كحدث أو مرحلة حياة. هذا يرفع التنقل بين المواقع ويجعل المستفيد هو من يربط الخدمات ببعضها.",
+    "whyBuilt": "بدأت Moments of Life في 2018 ثم تطورت إلى LifeSG لتجميع الخدمات والمعلومات الحكومية حول احتياجات الحياة اليومية بدلا من هيكل الجهات.",
+    "journey": [
+      "يدخل المستفيد إلى منصة واحدة ويشاهد خدمات ومزايا مرتبطة بمرحلة حياته",
+      "في رحلة الولادة يمكن تسجيل الطفل والتقديم على Baby Bonus وعضوية المكتبة ضمن نفس المسار عند انطباق الشروط",
+      "التطبيق يعرض مزايا حكومية وحالة بعض الطلبات والمواعيد والتنبيهات من مكان واحد"
+    ],
+    "design": [
+      "تنظيم الخدمات حول مراحل الحياة والمهام بدل أسماء الجهات",
+      "Personalisation ومحتوى مرتبط بالسياق مع إبقاء الكتالوج متاحا عند الحاجة",
+      "Inbox ومواعيد وحالة طلبات لتقليل الانتقال بين القنوات"
+    ],
+    "integration": [
+      "LifeSG يعمل كواجهة موحدة فوق خدمات جهات حكومية متعددة",
+      "Singpass يوفر هوية رقمية موثوقة ويدعم النماذج المعبأة مسبقا ببيانات موثقة",
+      "الملف الشخصي في LifeSG يعرض معلومات قادمة من أكثر من جهة حكومية"
+    ],
+    "dataUsed": [
+      "بيانات الهوية عبر Singpass",
+      "بيانات الملف الشخصي من جهات حكومية متعددة",
+      "بيانات الأسرة والاستحقاقات المطلوبة في الرحلة",
+      "حالة الطلبات والمواعيد والتنبيهات عندما تكون متاحة"
+    ],
+    "challenges": [
+      "قيمة التخصيص تعتمد على جودة البيانات واتساقها بين الجهات",
+      "تجميع الخدمات لا يكفي إذا بقيت الرحلات الخلفية منفصلة أو تطلب إدخالا مكررا",
+      "المنصة تحتاج حدودا واضحة لما هو معلومة معروضة وما هو تنفيذ فعلي داخل النظام المصدر"
+    ],
+    "lessons": [
+      "نبدأ من الحدث والسياق قبل اسم الخدمة",
+      "نستخدم البيانات المعروفة لتقليل الأسئلة",
+      "نجمع الاكتشاف والمتابعة في تجربة واحدة بدون الادعاء أن كل شيء ينفذ داخل صلة"
+    ]
   },
   {
     "id": "estonia",
@@ -195,7 +339,41 @@ coverage/
         "url": "https://www.ria.ee/en/state-information-system/personal-services/state-portal-eestiee"
       }
     ],
-    "sourceDate": "2026-10-03"
+    "sourceDate": "2026-10-04",
+    "problem": "حدث واحد مثل التقاعد أو الزواج يخلق حقوقا والتزامات موزعة بين مؤسسات كثيرة، وهذا يجعل الشخص يتعامل مع تعقيد الهيكل الحكومي بنفسه.",
+    "whyBuilt": "RIA صممت Proactive Government Services لتجميع الأنشطة المرتبطة بحدث حياة أو عمل في خدمة واحدة عبر قناة وطنية واحدة، مع إبقاء التعاون بين الجهات خلف الكواليس.",
+    "journey": [
+      "يختار المستخدم أو يصل إلى حدث حياة في eesti.ee",
+      "تظهر الأنشطة والحقوق والالتزامات المرتبطة بالحدث في تسلسل منطقي",
+      "تتعاون المؤسسات المشاركة تحت تنسيق Service Owner واحد",
+      "تظهر للمستخدم الخطوات المطلوبة وحالة ما تم إنجازه بحسب الخدمة"
+    ],
+    "design": [
+      "Life-event first بدل agency first",
+      "رحلة واحدة تحتوي أنشطة من جهات متعددة",
+      "Service Owner مسؤول عن تنسيق الرحلة وقواعدها مع الجهات وRIA"
+    ],
+    "integration": [
+      "eesti.ee يعمل كقناة وطنية تعرض الخدمات الاستباقية",
+      "التنفيذ يعتمد على تعاون مؤسسات متعددة وبنية الدولة الرقمية القابلة للتشغيل البيني",
+      "RIA توثق X-tee كطبقة تبادل بيانات ضمن منظومة الدولة الرقمية، لكن تفاصيل كل رحلة تختلف حسب الجهات المشاركة"
+    ],
+    "dataUsed": [
+      "بيانات الحدث والحالة الموجودة لدى الجهات المشاركة",
+      "بيانات الهوية والحساب في القناة الوطنية",
+      "حالة الخطوات والحقوق أو الالتزامات المرتبطة بالحدث",
+      "Consent عندما تتطلب الخدمة متابعة أو مشاركة بيانات شخصية"
+    ],
+    "challenges": [
+      "تحتاج كل رحلة إلى مالك خدمة وصلاحيات واضحة بين الجهات",
+      "الاستباقية لا تلغي متطلبات الخصوصية والموافقة",
+      "نجاح الواجهة مرتبط بنضج التكامل وتعريف المسؤوليات خلفها"
+    ],
+    "lessons": [
+      "Event Catalog أهم من قائمة خدمات مسطحة",
+      "كل حدث عالي القيمة يحتاج Service Owner واضح",
+      "حالة التنفيذ يجب أن تكون مرئية ولا تفترض النجاح لمجرد اكتشاف الخدمة"
+    ]
   },
   {
     "id": "france",
@@ -268,7 +446,41 @@ coverage/
         "url": "https://solidarites.gouv.fr/portail-mes-droits-sociaux"
       }
     ],
-    "sourceDate": "2026-10-03"
+    "sourceDate": "2026-10-04",
+    "problem": "المستخدم قد لا يعرف أي مساعدة اجتماعية تنطبق عليه، كما أن تجربة تغير الدخل أو الأسرة لا يجب أن تعدل بياناته الرسمية أو تتحول إلى تصريح تغيير.",
+    "whyBuilt": "Mes Droits Sociaux يوفر نقطة دخول موحدة لعرض الحقوق والموارد ومحاكاة المساعدات، بهدف تسهيل الوصول للحقوق وتقليل عدم الاستفادة بسبب صعوبة اكتشافها.",
+    "journey": [
+      "يمكن للمستخدم استعراض حقوقه وموارده الحالية كمسار مستقل",
+      "يمكنه تشغيل محاكي للمساعدات وإدخال أو مراجعة بيانات الحالة",
+      "عند تسجيل الدخول يمكن أن تظهر معلومات معبأة مسبقا من المجالين الاجتماعي والضريبي",
+      "النتيجة تظهر كتقدير إرشادي ثم توجه المستخدم إلى الجهة المختصة عند وجود حق محتمل"
+    ],
+    "design": [
+      "فصل واضح بين الحقوق الحالية وبين المحاكاة",
+      "المحاكي متعدد المساعدات ويشرح الزمن والبيانات المطلوبة قبل البدء",
+      "النتيجة تقديرية وليست قرارا رسميا نهائيا"
+    ],
+    "integration": [
+      "FranceConnect يستخدم للدخول الموحد وإعادة استخدام معلومات معروفة",
+      "البوابة تجمع معلومات من المجال الاجتماعي والضريبي وتربط المستخدم بالجهة التي تنفذ الطلب",
+      "بعض المسارات تسمح بإعادة استخدام البيانات المعبأة عند الانتقال إلى طلب فعلي لدى جهة مشاركة"
+    ],
+    "dataUsed": [
+      "معلومات اجتماعية وضريبية معروفة مسبقا",
+      "بيانات صرح بها أصحاب العمل والجهات الاجتماعية",
+      "مدخلات المستخدم داخل المحاكاة مثل الأسرة والدخل والثروة حسب نوع المساعدة",
+      "المدخلات داخل المحاكاة لا تحفظ كتغيير رسمي ولا تحدث بيانات الجهات المصدرية"
+    ],
+    "challenges": [
+      "النتيجة قد تختلف عن القرار الرسمي عند دخول بيانات أو قواعد إضافية",
+      "كل مساعدة تحتاج بيانات مختلفة، لذلك لا يمكن اختزال الأهلية في متغير واحد",
+      "يجب شرح الفرق بين التقدير وبين الطلب الرسمي بوضوح"
+    ],
+    "lessons": [
+      "Current State منفصل عن What If State",
+      "المحاكاة لا تكتب على السجل الحقيقي",
+      "النتيجة المحتملة يجب أن تعرض حدودها وما الذي ما زال يحتاج تحقق"
+    ]
   },
   {
     "id": "tell_us_once",
@@ -337,7 +549,41 @@ coverage/
         "url": "https://www.gov.uk/government/publications/tell-us-once-customer-service-survey-analysis"
       }
     ],
-    "sourceDate": "2026-10-03"
+    "sourceDate": "2026-10-04",
+    "problem": "بعد الوفاة تحتاج الأسرة إلى إبلاغ جهات حكومية متعددة في وقت حساس، ما يكرر نفس المعلومة ويجعل الشخص حلقة الربط بين المؤسسات.",
+    "whyBuilt": "Tell Us Once صممت لتسمح بالإبلاغ عن الوفاة إلى معظم الجهات الحكومية من نقطة واحدة بدل التواصل مع كل جهة بشكل مستقل.",
+    "journey": [
+      "بعد تسجيل الوفاة يشرح المسجل الخدمة ويعطي رقما مرجعيا عند الحاجة",
+      "يستخدم الشخص الرقم لإكمال Tell Us Once عبر القنوات المتاحة",
+      "الخدمة ترسل إشعار الحدث إلى الجهات الحكومية المشاركة ذات العلاقة",
+      "بعض المعلومات الخاصة بأقارب أو مستفيدين آخرين تتطلب صلاحية أو موافقة قبل مشاركتها"
+    ],
+    "design": [
+      "حدث واحد واضح يبدأ الرحلة",
+      "نقطة إدخال واحدة للمعلومة ثم توزيعها إلى الجهات المشاركة",
+      "فصل الإبلاغ عن الوفاة عن التقديم على منافع أو طلبات جديدة"
+    ],
+    "integration": [
+      "الخدمة تربط جهات مركزية ومجالس محلية مشاركة",
+      "التكامل مبني على توزيع إشعار موحد للجهات التي تحتاجه",
+      "التغطية تعتمد على نوع الجهة والخدمة ومشاركة الجهة في Tell Us Once"
+    ],
+    "dataUsed": [
+      "رقم Tell Us Once المرجعي",
+      "بيانات الشخص المتوفى",
+      "تفاصيل مرتبطة بالخدمات الحكومية التي تحتاج الإلغاء أو التحديث",
+      "بيانات الأقارب أو المستفيدين المشتركين فقط عند توفر الصلاحية اللازمة"
+    ],
+    "challenges": [
+      "ليس كل أثر يعني وجود طلب جديد قابل للتنفيذ تلقائيا",
+      "التغطية تختلف حسب الجهة والسياق الجغرافي والخدمة",
+      "مؤشرات الرضا القوية المتاحة تاريخية من 2013 ولا يجب عرضها كأداء حالي"
+    ],
+    "lessons": [
+      "المستفيد لا يجب أن يكون Integration Layer",
+      "حدث واحد قد يطلق آثارا على خدمات كثيرة",
+      "نفرق بين اكتشاف الأثر وبين تأكيد أن التحديث تم في كل نظام مصدر"
+    ]
   },
   {
     "id": "mygov",
@@ -403,47 +649,46 @@ coverage/
         "url": "https://my.gov.au/content/dam/mygov/documents/audit/mygov-useraudit-jan2023-volume2.pdf"
       }
     ],
-    "sourceDate": "2026-10-03",
-    "cautionCard": true
+    "sourceDate": "2026-10-04",
+    "cautionCard": true,
+    "problem": "الرؤية كانت Tell Us Once وإعادة استخدام البيانات، لكن اختلاف التشريعات والحقول وجودة البيانات بين الجهات جعل التحديث الموحد غير موثوق بالكامل للمستخدم.",
+    "whyBuilt": "myGov يهدف إلى جعل التعامل مع الحكومة أبسط ومتصلا وأكثر تخصيصا، وتحديث التفاصيل مرة واحدة أحد القدرات التي يفترض أن تقلل التكرار بين الخدمات الأعضاء.",
+    "journey": [
+      "يغير المستخدم بيانات مثل العنوان أو الهاتف من myGov",
+      "يرسل myGov التحديث إلى الخدمات الأعضاء التي تستخدم Tell Us Once",
+      "كل خدمة عضو تقرر قبول التحديث بحسب بياناتها وقواعدها",
+      "في الحالة التي وثقها التدقيق لم يكن المستخدم يحصل دائما على نتيجة واضحة لكل جهة بعد الإرسال"
+    ],
+    "design": [
+      "نقطة موحدة لتحديث بعض البيانات عبر خدمات متعددة",
+      "Prefill وإعادة استخدام البيانات كقدرة مشتركة",
+      "التدقيق أوصى بتجربة أكثر تخصيصا وتنظيما حول أحداث الحياة"
+    ],
+    "integration": [
+      "Tell Us Once كان قدرة اختيارية للخدمات الأعضاء",
+      "التدقيق وثق اختلاف تشريعات الاستخدام وصيغ الحقول بين الجهات",
+      "التواصل كان في بعض الحالات باتجاه واحد، والتغييرات من الجهة العضو لا تعود إلى myGov"
+    ],
+    "dataUsed": [
+      "العنوان السكني والبريدي",
+      "البريد الإلكتروني وأرقام الهاتف",
+      "بيانات محدودة مخزنة في myGov مع اعتماد كبير على أنظمة الخدمات الأعضاء",
+      "بيانات الجهات المصدرية التي تستخدم في prefill عندما يكون التكامل متاحا"
+    ],
+    "challenges": [
+      "في يونيو 2022 استخدمت 7 فقط من 15 خدمة عضو Tell Us Once",
+      "في يناير 2022 قبلت 34% فقط من تحديثات التفاصيل مباشرة",
+      "38% من التحديثات احتاجت تدخلا إضافيا من الموظفين",
+      "اختلاف الحقول وجودة البيانات والتشريعات وضعف feedback للمستخدم كانت عوائق أساسية"
+    ],
+    "lessons": [
+      "Data Mapping قبل الواجهة الذكية",
+      "Source of Truth وتعريف الحقول لازم يكونان صريحين",
+      "نحتاج status feedback لكل نظام مصدر",
+      "قياس نجاح Tell Once يكون بنسبة التحديثات المنفذة فعليا لا بعدد الجهات المرتبطة"
+    ]
   }
 ]
-`````
-
-## `data/language_glossary.json`
-
-`````text
-{
-  "version": "2026-10-03",
-  "notes": "قاموس محلي لتوحيد الألفاظ الشائعة واللهجة داخل نموذج صلة. لا يمثل قاعدة أهلية.",
-  "serviceAliases": {
-    "social_security": ["الضمان", "الضمان الاجتماعي", "الضمان المطور", "معاش الضمان"],
-    "social_security_objection": ["اعتراض الضمان", "الاعتراض على الضمان", "اعترض على الضمان"],
-    "job_search_subsidy": ["حافز", "اعانة البحث عن عمل", "إعانة البحث عن عمل", "دعم الباحثين عن عمل"],
-    "tamheer": ["تمهير", "تطوير الخريجين", "تدريب على راس العمل", "تدريب على رأس العمل"],
-    "doroob": ["دروب", "تدريب الكتروني", "تدريب إلكتروني"],
-    "wusool": ["وصول", "دعم النقل"],
-    "qurra": ["قرة", "قره", "ضيافة اطفال", "ضيافة أطفال", "حضانة"],
-    "professional_certificates": ["دعم الشهادات المهنية", "شهادة مهنية", "شهادة احترافية", "رخصة مهنية"],
-    "career_guidance_sobol": ["سبل", "ارشاد مهني", "إرشاد مهني", "مسار مهني"],
-    "senior_privilege_card": ["بطاقة امتياز", "امتياز كبار السن", "كبار السن"],
-    "labor_settlement": ["التسوية الودية", "تسوية ودية", "خلاف عمالي"],
-    "disability_evaluation": ["تقييم الاعاقة", "تقييم الإعاقة"],
-    "disability_financial_aid": ["اعانة ذوي الاعاقة", "إعانة ذوي الإعاقة", "اعانة مالية للاعاقة"],
-    "traffic_facilities_certificate": ["التسهيلات المرورية", "مواقف ذوي الاعاقة", "مواقف ذوي الإعاقة"],
-    "domestic_worker_contract_documentation": ["توثيق العمالة المنزلية", "عقد عاملة منزلية", "عقد عامل منزلي", "مساند"]
-  },
-  "jobStageAliases": {
-    "reviewing": ["وصلني العرض", "جاني عرض", "جاني شغل", "اراجع العرض", "أراجع العرض"],
-    "accepted": ["وافقت", "قبلت العرض", "وقعت", "قلت لهم اوكي", "قلت لهم أوكي", "قلت لهم موافق"],
-    "documented": ["تم التوثيق", "موثق", "توثق العقد"],
-    "started": ["باشرت", "داومت", "بديت العمل", "بدأت العمل", "بدأت الدوام"]
-  },
-  "notStartedAliases": ["ما باشرت", "لسه ما باشرت", "للحين ما باشرت", "ما داومت", "لسه ما داومت", "للحين ما داومت", "ما بديت", "ما بدأت", "لم أبدأ"],
-  "replacementAliases": {
-    "replace": ["بديلة", "بديل", "بطلع من وظيفتي", "بترك وظيفتي", "بانتقل", "انتقل لها", "مكان وظيفتي"],
-    "keep": ["باقي على وظيفتي", "وظيفتي الحالية مستمرة", "العقد الحالي باقي", "بجمع بين", "بستمر في وظيفتي"]
-  }
-}
 `````
 
 ## `data/personas.json`
@@ -1382,514 +1627,459 @@ coverage/
 ]
 `````
 
-## `docs/CHAT_ENGINE.md`
-
-`````text
-# محرك المحادثة في صلة V6
-
-هذه النسخة لا تعتمد على LLM كصندوق أسود. المحادثة تمر بمراحل مستقلة حتى نحافظ على الدقة ونقلل زمن الانتظار والهبد.
-
-
-## V6: Semantic Frame
-
-الفرق الأساسي في V6 أن مرحلة الفهم لا تتعامل مع الرسالة كـIntent واحد فقط. يتم استخراج حقائق مستقلة يمكن للقواعد الاعتماد عليها:
-
-```json
-{
-  "intent": "new_job",
-  "mode": "reported",
-  "jobStage": "reviewing",
-  "salary": 6500,
-  "accepted": false,
-  "started": false
-}
-```
-
-كما يفصل المبلغ النهائي عن مقدار التغيير. لذلك `راتبي انخفض 500 ريال` يمثل `delta=-500`، بينما `راتبي صار 5000` يمثل قيمة نهائية.
-
-حالة المحادثة تحتفظ بآخر خدمة ونتيجة وادعاء مهم. هذا يسمح لأسئلة المتابعة مثل `ليش؟` و`تنطبق علي؟` و`أقدر أقدم عليه؟` بالرجوع للمرجع الصحيح بدون إعادة تفسير الرحلة من الصفر.
-
-Gold Set المرفق في `tests/gold100.json` يغطي 100 صياغة واقعية، ويعمل كاختبار Regression دائم لأي تعديل على المحرك.
-
-## المسار
-
-```text
-رسالة المستفيد
-  ↓
-1. Query Refinement محلي
-  ↓
-2. استخراج الحقائق الواضحة
-  ↓
-3. فحص سياق الجلسة والـSlots السابقة
-  ↓
-4. استرجاع خدمات محدود عند الحاجة فقط
-  ↓
-5. Groq مرة واحدة فقط إذا بقي غموض لغوي
-  ↓
-6. دمج الحقائق الحتمية فوق نتيجة النموذج
-  ↓
-7. Slot Filling وسؤال معلومة واحدة مؤثرة إذا كانت ناقصة
-  ↓
-8. Rules Engine
-  ↓
-9. رد مبني من القواعد والمصادر
-```
-
-## 1. Query Refinement
-
-قبل الاتصال بالـAI، صلة ينظف الرسالة ويفهم أشياء يمكن استخراجها بدون نموذج لغوي:
-
-- الأرقام العربية والإنجليزية
-- الصياغات العامية مثل `ستة ونص`
-- مرحلة الوظيفة مثل `وافقت` أو `باشرت`
-- النفي مثل `ما باشرت`
-- هل الوظيفة بديلة عن الحالية
-- بعض الأحداث الواضحة مثل الاستقالة أو انتهاء العقد
-- أسماء الخدمات والمصطلحات الشائعة
-
-هذه المرحلة تمنع فقد معلومة صريحة قالها المستفيد.
-
-مثال:
-
-```text
-جاني شغل بستة ونص ووافقت بس للحين ما باشرت
-```
-
-تتحول محليا إلى:
-
-```json
-{
-  "intent": "new_job",
-  "salary": 6500,
-  "jobStage": "accepted",
-  "started": false
-}
-```
-
-## 2. Confidence قبل الافتراض
-
-صلة لا يحول كل رقم قصير إلى آلاف بدون تأكيد.
-
-```text
-راتبي بيصير 7
-```
-
-يستنتج احتمال 7000 لكنه يسأل:
-
-```text
-تقصد 7,000 ريال؟
-```
-
-أما:
-
-```text
-جاني شغل بستة ونص
-```
-
-فالسياق والصياغة يعطيان ثقة أعلى ويقرأها 6500 بدون إعادة سؤال الراتب.
-
-## 3. Session Slots
-
-صلة يحتفظ بالمتغيرات المهمة في السيناريو بدل محاولة استنتاج كل شيء من آخر رسالة فقط.
-
-أمثلة Slots:
-
-- salary
-- income
-- jobStage
-- replacesCurrentJob
-- endStage
-- endReason
-- targetServiceIds
-
-المعلومة الموجودة في الجلسة لا يعاد سؤال المستفيد عنها.
-
-## 4. قاموس اللغة
-
-`data/language_glossary.json` يحتوي مرادفات ومصطلحات شائعة يمكن توسيعها بدون تغيير جوهر المحرك.
-
-أمثلة:
-
-```text
-حافز -> إعانة البحث عن عمل
-بستة ونص -> 6500 في سياق راتب
-ما باشرت -> لا تعتبر الوظيفة started
-```
-
-القاموس ليس قاعدة أهلية. دوره توحيد لغة المستخدم مع لغة النظام.
-
-## 5. Retrieval محدود
-
-صلة لا يرسل 18 خدمة إلى النموذج.
-
-- سؤال حدث مثل وظيفة جديدة أو تغير دخل: لا نرسل أي كتالوج خدمات للـAI
-- سؤال خدمة غامض: الاسترجاع المحلي يختار عادة 1 إلى 3 خدمات مرشحة
-- اسم خدمة مباشر: نتعامل معه محليا في أغلب الحالات
-
-محرك القواعد وحده يقرر لاحقا أي خدمة مرتبطة بالنتيجة.
-
-## 6. AI للفهم فقط
-
-Groq لا يقرر الأهلية ولا يكتب القرار النهائي.
-
-يستخدم فقط عندما تكون صياغة المستخدم غير واضحة بما يكفي للمنطق المحلي.
-
-إذا كان لدينا حقيقة محلية عالية الثقة مثل `salary = 6500` أو `ما باشرت` فلا يسمح لنتيجة النموذج أن تناقضها.
-
-## 7. Clarification بدلا من التخمين
-
-إذا كانت معلومة مؤثرة ناقصة، نسأل سؤالا واحدا واضحا.
-
-مثال خالد:
-
-```text
-جاني شغل بستة ونص ووافقت بس ما باشرت
-```
-
-نعرف الراتب والمرحلة. السؤال المتبقي الذي يغير النتيجة:
-
-```text
-هل الوظيفة الجديدة بديلة عن وظيفتك الحالية، أو أن عقدك الحالي سيبقى قائما؟
-```
-
-ولا نعيد سؤال الراتب.
-
-## 8. Validation
-
-بعد فهم الرسالة نطبق فحوص اتساق قبل القواعد.
-
-مثال:
-
-```text
-وافقت بس ما باشرت
-```
-
-لا يمكن أن تنتهي داخليا كـ`started` حتى لو أخطأ النموذج في التصنيف.
-
-## 9. الاستمرارية عند تعطل AI
-
-- Timeout واضح لـGroq
-- لا توجد Retry loops طويلة
-- الأسئلة الواضحة تعمل بدون AI أصلا
-- إذا تعطل Groq يرجع النظام للمسار المحلي بدل ترك `/api/chat` في Pending
-
-## 10. سلوك الواجهة
-
-المحادثة لا تنزل تلقائيا عند وصول الرد.
-
-- موضع القراءة يبقى كما هو
-- المستخدم ينزل بنفسه لقراءة الرد الجديد
-- تركيز حقل الإدخال يستخدم `preventScroll`
-- `overflow-anchor` معطل داخل مساحة الرسائل لمنع تحريك المتصفح للمحتوى تلقائيا
-
-## أنماط التصميم التي أخذناها كمرجع
-
-### Intercom Fin
-
-الفكرة المستخدمة: تحسين السؤال قبل الإرسال، استرجاع المعرفة ذات الصلة فقط، طلب توضيح إذا انخفضت الثقة، ثم فحص جودة النتيجة قبل الرد.
-
-مرجع:
-https://www.intercom.com/help/en/articles/9929230-the-fin-ai-engine
-
-### Microsoft Copilot Studio
-
-الفكرة المستخدمة: Inputs واضحة لكل مهمة، تعبئة القيم من سياق المحادثة أو ملف المستخدم، والسؤال فقط عن المدخلات الناقصة مع validation للقيم.
-
-مراجع:
-https://learn.microsoft.com/en-us/microsoft-copilot-studio/guidance/generative-orchestration
-https://learn.microsoft.com/en-us/microsoft-copilot-studio/advanced-additional-settings-topic-action-inputs
-
-### Google Dialogflow CX
-
-الفكرة المستخدمة: Session parameters تحفظ القيم خلال الرحلة، والـwebhook يستقبل البيانات المنظمة لتطبيق منطق الأعمال بدل الاعتماد على النص الخام.
-
-مراجع:
-https://docs.cloud.google.com/dialogflow/cx/docs/concept/parameter
-https://docs.cloud.google.com/dialogflow/cx/docs/concept/webhook
-
-### Zendesk AI Agents
-
-الفكرة المستخدمة: Knowledge Search Rules تحدد أي مصادر يبحث فيها الوكيل حسب حالة المحادثة، وتجنب توسيع المعرفة المرسلة بدون داع لأن كثرة المصادر قد تزيد latency وتخفض الدقة.
-
-مراجع:
-https://support.zendesk.com/hc/en-us/articles/9185497386394-Configuring-search-rules-for-knowledge-sources-for-AI-agents
-https://support.zendesk.com/hc/en-us/articles/8357749301658-Connecting-knowledge-sources-to-power-generative-replies-in-advanced-AI-agents
-
-### Ada
-
-الفكرة المستخدمة: Glossary يربط لغة المستخدم والمصطلحات الشائعة بالمصطلحات الرسمية التي يستخدمها النظام في الفهم والبحث.
-
-مرجع:
-https://docs.ada.cx/2026-07-06-glossary-ga
-
-### GOV.UK Chat
-
-الفكرة المستخدمة: السؤال التوضيحي عند الغموض، إعطاء المستخدم طريقة للتحقق من المصدر، قياس الدقة والسرعة والثقة، وعدم الإجابة عندما لا توجد ثقة كافية.
-
-مرجع:
-https://insidegovuk.blog.gov.uk/2026/03/16/5-things-we-learned-testing-gov-uk-chat-an-ai-assistant-for-government/
-`````
-
-## `docs/LOGIC_MODEL.md`
-
-`````text
-# نموذج المنطق في صلة
-
-## 1. حالة الخدمة ليست قيمة واحدة
-
-لكل خدمة أربع زوايا مستقلة:
-
-- `current`: هل المستفيد يستخدم الخدمة حاليا
-- `availability`: هل التقديم أو استخدام الخدمة متاح من حيث المبدأ
-- `eligibility`: هل نعرف نتيجة أهلية فعلية أم لا
-- `relevance`: هل الخدمة مرتبطة بالحالة الحالية أو السؤال أو حدث مستقبلي
-
-هذا يمنع الاستنتاج الخاطئ:
-
-```text
-غير مستفيد حاليا = لا يمكن التقديم
-```
-
-## 2. الحقيقة غير البلاغ غير الافتراض
-
-صلة يميز بين:
-
-- `current`: معلومة حالية من المصدر
-- `reported`: تغيير يقول المستفيد إنه حدث فعلا لكنه قد لا يكون انعكس في المصدر
-- `what_if`: سيناريو افتراضي لم يحدث
-
-في الوظيفة الجديدة مثلا:
-
-```text
-وصلني العرض
-وافقت من جهتي
-تم توثيق العقد
-بدأت العمل
-```
-
-كل مرحلة لها أثر مختلف.
-
-## 3. Query Refinement قبل النموذج
-
-قبل Groq، `src/nlu.js` يحاول استخراج الحقائق التي لا تحتاج تخمينا:
-
-- أرقام مكتوبة بالعربية أو الإنجليزية
-- تعبيرات راتب عامية مثل `ستة ونص`
-- مرحلة العقد أو الوظيفة
-- النفي مثل `ما باشرت`
-- هل الوظيفة بديلة عن الحالية
-- مرحلة انتهاء العلاقة وسببها إن كان صريحا
-- أسماء خدمات ومرادفات شائعة
-
-الحقيقة المحلية عالية الثقة لا يسمح للنموذج أن يناقضها.
-
-## 4. Session Slots
-
-صلة يحتفظ بالمتغيرات المؤثرة خلال المحادثة، مثل:
-
-```text
-salary
-income
-jobStage
-replacesCurrentJob
-endStage
-endReason
-targetServiceIds
-```
-
-إذا كانت المعلومة موجودة في الرسالة السابقة أو ملف المستفيد فلا يعيد السؤال عنها.
-
-## 5. الذكاء الاصطناعي يفهم اللغة فقط
-
-إذا كان السؤال واضحا من القواعد المحلية، لا يتم استدعاء Groq.
-
-إذا احتاج السؤال فهما لغويا أوسع:
-
-1. ننقح الرسالة ونستخرج الحقائق الحتمية
-2. `src/retrieval.js` يبحث محليا في كتالوج الخدمات عند الحاجة
-3. أحداث مثل وظيفة جديدة أو تغير دخل ترسل صفر خدمات للـAI
-4. أسئلة الخدمة الغامضة ترسل عادة 1 إلى 3 خدمات فقط
-5. Groq يعيد Intent وEntities وMode
-6. نعيد تطبيق الحقائق المحلية فوق النتيجة
-7. `src/rules.js` يصدر النتيجة
-8. الرد النهائي يبنى محليا من حقائق النتيجة
-
-لا يوجد طلب AI ثان لصياغة الرد.
-
-## 6. الاسترجاع ليس قرار أهلية
-
-ترشيح خدمة لطبقة الفهم لا يعني أن المستفيد مؤهل لها.
-
-الاسترجاع يعتمد على:
-
-- اسم الخدمة أو المرادف
-- Trigger Signals
-- كلمات السؤال
-- المجال
-- سياق المحادثة
-- ارتباط أولي ببيانات المستفيد
-
-ثم يظل محرك القواعد هو صاحب قرار الارتباط والتقييم الأولي.
-
-## 7. Clarification بدل التخمين
-
-إذا بقيت معلومة واحدة مؤثرة غير محسومة، نسأل عنها فقط.
-
-مثال:
-
-```text
-جاني شغل بستة ونص ووافقت بس ما باشرت
-```
-
-نعرف:
-
-```text
-salary = 6500
-jobStage = accepted
-started = false
-```
-
-إذا كان وضع الوظيفة الحالية هو المتغير الوحيد الذي يغير النتيجة، نسأل عنه ولا نعيد سؤال الراتب.
-
-أما:
-
-```text
-راتبي بيصير 7
-```
-
-فنطلب تأكيد 7000 لأن التعبير المختصر يحتمل اللبس.
-
-## 8. قاموس لغة مستقل
-
-`data/language_glossary.json` يربط ما يقوله المستفيد بالمصطلح الرسمي.
-
-هذا يسمح بدعم تعبيرات مثل:
-
-```text
-حافز
-الضمان
-ستة ونص
-ما باشرت
-بديلة عن وظيفتي
-```
-
-بدون تلويث قواعد الأهلية أو كتابة فرع محادثة يدوي لكل جملة.
-
-## 9. Validation
-
-بعد فهم الرسالة نطبق فحوص اتساق قبل القواعد.
-
-مثال:
-
-```text
-وافقت بس ما باشرت
-```
-
-لا يمكن أن تنتهي داخليا كـ`started` حتى لو أخطأ النموذج في التصنيف.
-
-## 10. لا تعليق عند تعطل مزود اللغة
-
-كل طلب Groq لديه Timeout صريح.
-
-إذا حصل Timeout أو Rate Limit أو خطأ شبكة:
-
-- لا نعيد المحاولة عدة مرات
-- نرجع إلى المسار المحلي
-- إذا وجد الاسترجاع تطابقا قويا ومباشرا يمكن ربط السؤال بالخدمة بأمان
-- وإلا صلة يطلب توضيحا بدل التخمين
-
-## 11. سؤال الخدمة المباشر
-
-إذا سأل المستخدم عن خدمة بالاسم، صلة يفحص الخدمة حتى لو لم يكن مشتركا فيها حاليا.
-
-مثال:
-
-```text
-هل الضمان ممكن يناسبني؟
-```
-
-لا نحول عدم الاستفادة الحالية إلى رفض.
-
-## 12. توأم الحالة
-
-`What If` لا يعدل الملف الحالي. صلة ينشئ حالة افتراضية ويشغل عليها نفس القواعد ثم يعرض الفرق.
-`````
-
-## `GITHUB_PUBLISH.md`
-
-`````text
-# نشر صلة على GitHub بأمان
-
-المشروع جاهز للرفع إلى GitHub بدون ملف `.env` وبدون مفتاح Groq.
-
-## قبل أول رفع
-
-شغل:
-
-```powershell
-npm run check
-```
-
-ثم تأكد أن `.env` متجاهل:
-
-```powershell
-git check-ignore -v .env
-```
-
-المفروض يظهر أن قاعدة `.env` في `.gitignore` هي التي تجاهلت الملف.
-
-## أول رفع إلى مستودع جديد
-
-من داخل مجلد المشروع:
-
-```powershell
-git init
-git add .
-git status
-git commit -m "Initial Silah GovTech prototype"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
-git push -u origin main
-```
-
-قبل `git commit` راجع `git status`. يجب ألا يظهر `.env` ضمن الملفات المضافة.
-
-## إذا رفعت مفتاحا بالخطأ سابقا
-
-حذف `.env` من آخر نسخة لا يكفي لأن المفتاح قد يبقى في Git history.
-
-1. احذف المفتاح من Groq Console
-2. أنشئ مفتاحا جديدا
-3. تأكد أن `.env` داخل `.gitignore`
-4. لا تستخدم المفتاح القديم مرة ثانية
-
-## GitHub Pages
-
-GitHub Pages يشغل ملفات Frontend ثابتة فقط. صلة يعتمد على `server.js` وGroq API، لذلك رفع الكود إلى GitHub طبيعي، لكن النسخة الحية تحتاج استضافة تشغل Node.js.
-
-المجلد يحتوي `render.yaml` كخيار جاهز للنشر على Render. بعد ربط المستودع بالخدمة، أضف `GROQ_API_KEY` كمتغير بيئة في لوحة الاستضافة. لا تضع المفتاح داخل GitHub.
-`````
-
-## `package.json`
+## `data/language_glossary.json`
 
 `````text
 {
-  "name": "silah-semantic-ai-poc",
-  "version": "7.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "test": "node --test tests/*.test.js",
-    "preflight": "node scripts/preflight.js",
-    "check": "node scripts/preflight.js && node --test tests/*.test.js",
-    "test:100:http": "node tests/run100_http.mjs"
+  "version": "2026-10-03",
+  "notes": "قاموس محلي لتوحيد الألفاظ الشائعة واللهجة داخل نموذج صلة. لا يمثل قاعدة أهلية.",
+  "serviceAliases": {
+    "social_security": ["الضمان", "الضمان الاجتماعي", "الضمان المطور", "معاش الضمان"],
+    "social_security_objection": ["اعتراض الضمان", "الاعتراض على الضمان", "اعترض على الضمان"],
+    "job_search_subsidy": ["حافز", "اعانة البحث عن عمل", "إعانة البحث عن عمل", "دعم الباحثين عن عمل"],
+    "tamheer": ["تمهير", "تطوير الخريجين", "تدريب على راس العمل", "تدريب على رأس العمل"],
+    "doroob": ["دروب", "تدريب الكتروني", "تدريب إلكتروني"],
+    "wusool": ["وصول", "دعم النقل"],
+    "qurra": ["قرة", "قره", "ضيافة اطفال", "ضيافة أطفال", "حضانة"],
+    "professional_certificates": ["دعم الشهادات المهنية", "شهادة مهنية", "شهادة احترافية", "رخصة مهنية"],
+    "career_guidance_sobol": ["سبل", "ارشاد مهني", "إرشاد مهني", "مسار مهني"],
+    "senior_privilege_card": ["بطاقة امتياز", "امتياز كبار السن", "كبار السن"],
+    "labor_settlement": ["التسوية الودية", "تسوية ودية", "خلاف عمالي"],
+    "disability_evaluation": ["تقييم الاعاقة", "تقييم الإعاقة"],
+    "disability_financial_aid": ["اعانة ذوي الاعاقة", "إعانة ذوي الإعاقة", "اعانة مالية للاعاقة"],
+    "traffic_facilities_certificate": ["التسهيلات المرورية", "مواقف ذوي الاعاقة", "مواقف ذوي الإعاقة"],
+    "domestic_worker_contract_documentation": ["توثيق العمالة المنزلية", "عقد عاملة منزلية", "عقد عامل منزلي", "مساند"]
   },
-  "engines": {
-    "node": ">=20"
+  "jobStageAliases": {
+    "reviewing": ["وصلني العرض", "جاني عرض", "جاني شغل", "اراجع العرض", "أراجع العرض"],
+    "accepted": ["وافقت", "قبلت العرض", "وقعت", "قلت لهم اوكي", "قلت لهم أوكي", "قلت لهم موافق"],
+    "documented": ["تم التوثيق", "موثق", "توثق العقد"],
+    "started": ["باشرت", "داومت", "بديت العمل", "بدأت العمل", "بدأت الدوام"]
+  },
+  "notStartedAliases": ["ما باشرت", "لسه ما باشرت", "للحين ما باشرت", "ما داومت", "لسه ما داومت", "للحين ما داومت", "ما بديت", "ما بدأت", "لم أبدأ"],
+  "replacementAliases": {
+    "replace": ["بديلة", "بديل", "بطلع من وظيفتي", "بترك وظيفتي", "بانتقل", "انتقل لها", "مكان وظيفتي"],
+    "keep": ["باقي على وظيفتي", "وظيفتي الحالية مستمرة", "العقد الحالي باقي", "بجمع بين", "بستمر في وظيفتي"]
   }
 }
+`````
+
+## `public/index.html`
+
+`````text
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f6b43">
+  <title>صلة | خدمات تفهم حالتك</title>
+  <meta name="description" content="صلة نموذج تصوري يربط بيانات المستفيد بالقواعد والخدمات، ويفهم أسئلته باللغة الطبيعية دون تحويل الذكاء الاصطناعي إلى جهة قرار.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <button class="brand" data-scroll="chat" aria-label="العودة إلى اسأل صلة">
+        <strong>صلة</strong>
+        <span>الخدمة تبدأ من حالتك</span>
+      </button>
+
+      <nav class="main-nav" aria-label="التنقل الرئيسي">
+        <button class="nav-link active" data-scroll="chat">اسأل صلة</button>
+        <button class="nav-link" data-scroll="impact">الأثر المتوقع</button>
+        <button class="nav-link" data-scroll="services">قاعدة الخدمات</button>
+        <button class="nav-link" data-scroll="benchmark">Benchmark</button>
+        <button class="nav-link" data-scroll="design">كيف صممنا صلة</button>
+      </nav>
+
+      <div class="header-actions">
+        <label class="profile-picker">
+          <span>الحالة التجريبية</span>
+          <select id="profileSelect" aria-label="اختيار الحالة التجريبية"></select>
+        </label>
+        <span id="aiStatus" class="status-pill loading">جار التحقق</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="chat" class="hero-section section-anchor">
+      <div class="shell">
+        <div class="hero-intro">
+          <span class="eyebrow">نموذج تفاعلي تصوري</span>
+          <h1>تكلم بطريقتك<br><span>وصلة يفهم وش يخص حالتك</span></h1>
+          <p>
+            صلة لا ينتظر منك تعرف اسم الخدمة. يبدأ من بياناتك الحالية، يفهم سؤالك أو السيناريو اللي تفكر فيه،
+            ثم يمرر الحالة على قواعد موثقة ويعرض لك فقط النتائج المرتبطة بك.
+          </p>
+        </div>
+
+        <div class="context-bar" aria-label="ملخص بيانات الحالة التجريبية">
+          <div class="context-copy">
+            <span class="micro-label">البيانات المعروفة الآن</span>
+            <strong id="profileHeadline">جار تحميل الحالة</strong>
+          </div>
+          <div id="profileFacts" class="fact-row"></div>
+        </div>
+
+        <div class="chat-card">
+          <div class="chat-topbar">
+            <div>
+              <span class="micro-label">اسأل صلة</span>
+              <h2>ما تحتاج تبدأ من اسم الخدمة</h2>
+              <p>اكتب سؤالك مثل ما تقوله لموظف يعرف ملفك</p>
+            </div>
+            <div class="chat-top-actions">
+              <div class="chat-trust">
+                <span class="trust-dot"></span>
+                <span>النتائج النظامية من محرك قواعد واحد</span>
+              </div>
+              <button id="resetChatButton" class="reset-chat-button" type="button" title="بدء محادثة جديدة بدون تغيير الحالة التجريبية">
+                <span aria-hidden="true">↻</span>
+                محادثة جديدة
+              </button>
+            </div>
+          </div>
+
+          <div id="starterArea" class="starter-area">
+            <div class="starter-copy">
+              <strong>وش ودك تعرف؟</strong>
+              <span>اختر سؤال أو اكتب بطريقتك</span>
+            </div>
+            <div id="suggestions" class="suggestions"></div>
+          </div>
+
+          <div id="messages" class="messages" aria-live="polite"></div>
+
+          <div id="typing" class="typing hidden" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <small>صلة يقرأ السياق ويشغل القواعد</small>
+          </div>
+
+          <form id="chatForm" class="composer">
+            <textarea id="messageInput" rows="1" maxlength="1200" placeholder="اكتب بطريقتك... مثال: جاني شغل بستة ونص ووافقت بس ما باشرت، وش يتغير؟" aria-label="رسالتك إلى صلة"></textarea>
+            <button id="sendButton" type="submit">إرسال</button>
+          </form>
+
+          <div class="composer-note">
+            الشخصيات والبيانات في هذه التجربة افتراضية. القواعد والخدمات مبنية على مصادر رسمية منشورة ولا تمثل قرار أهلية رسمي.
+          </div>
+        </div>
+
+        <div id="miniDashboard" class="mini-dashboard"></div>
+
+        <div class="intelligence-grid">
+          <section class="radar-card" aria-labelledby="radarTitle">
+            <div class="card-heading-row">
+              <div>
+                <span class="micro-label">خريطة صلة</span>
+                <h3 id="radarTitle">وش يعرف عنك النظام، وش اللي يستحق التحقق؟</h3>
+              </div>
+              <span class="quiet-pill">تتغير مع الحالة</span>
+            </div>
+            <div id="serviceRadar" class="service-radar"></div>
+          </section>
+
+          <section id="simulationDock" class="twin-card idle" aria-labelledby="twinTitle">
+            <div class="card-heading-row">
+              <div>
+                <div class="micro-label-with-info">
+                  <span class="micro-label">توأم الحالة</span>
+                  <span class="info-popover">
+                    <button type="button" class="info-trigger" aria-label="شرح توأم الحالة">i</button>
+                    <span class="info-panel" role="tooltip">
+                      <strong>وش يعني Digital Twin في صلة؟</strong>
+                      <span>هو نسخة افتراضية ومؤقتة من حالة المستفيد. إذا قلت مثلا: لو نزل راتبي إلى 4000، صلة لا يغيّر بياناتك الحالية، بل ينسخ الحالة المعروفة ويطبق التغيير على النسخة فقط.</span>
+                      <span>بعدها يشغل نفس محرك القواعد على الحالتين ويقارن الخدمات والآثار. السيناريو يبقى منفصلا عن السجل الحقيقي ولا يتحول إلى تحديث رسمي.</span>
+                    </span>
+                  </span>
+                </div>
+                <h3 id="twinTitle">جرّب قرارك على نسخة افتراضية من حالتك</h3>
+              </div>
+              <span id="twinStatus" class="quiet-pill">جاهز للمحاكاة</span>
+            </div>
+            <div id="simulationContent" class="twin-empty">
+              اكتب مثلا: لو نزل راتبي إلى 4000، أو جاني عرض جديد ووافقت بس ما باشرت
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="impact" class="content-section impact-section section-anchor">
+      <div class="shell">
+        <div class="section-heading split-heading impact-heading">
+          <div>
+            <span class="eyebrow">الأثر المتوقع</span>
+            <h2>صلة ما يضيف قناة جديدة فقط<br><span>يقلل الاحتكاك قبل ما يبدأ الطلب</span></h2>
+            <p>
+              الوزارة تعمل على نطاق رقمي كبير. لذلك قيمة صلة تقاس في تقليل البحث، والأسئلة المتكررة، والرحلات غير المناسبة، وإعادة إدخال البيانات.
+              الأرقام تحت تفصل بين Baseline منشور وبين سيناريو أثر افتراضي للـPoC.
+            </p>
+          </div>
+          <div class="impact-baseline">
+            <div><strong>Q2 2026</strong><span>Baseline من تقرير صوت المستفيد</span></div>
+            <div><strong>526,945</strong><span>مكالمة واردة كنقطة قياس للسيناريو</span></div>
+            <a href="https://www.hrsd.gov.sa/ministry/e-participation/beneficiary-voice-reports" target="_blank" rel="noopener">المصدر الرسمي ↗</a>
+          </div>
+        </div>
+
+        <div class="impact-voice-card">
+          <div class="impact-voice-head">
+            <div>
+              <span class="micro-label">Baseline من صوت المستفيد</span>
+              <h3>وين ممكن يظهر أثر صلة على القنوات الحالية؟</h3>
+              <p>نستخدم أرقام الربع الثاني 2026 المنشورة في تقرير صوت المستفيد كنقطة بداية لسيناريو قياس، وليس كتوقع بأن كل التفاعلات قابلة للتخفيض.</p>
+            </div>
+            <a href="https://www.hrsd.gov.sa/ministry/e-participation/beneficiary-voice-reports" target="_blank" rel="noopener">تقارير صوت المستفيد ↗</a>
+          </div>
+          <div class="voice-metrics">
+            <div><strong>757,960</strong><span>إجمالي التفاعلات في الربع</span></div>
+            <div><strong>526,945</strong><span>مكالمات واردة</span></div>
+            <div><strong>58,661</strong><span>شكاوى</span></div>
+            <div><strong>172,354</strong><span>تفاعلات عبر التواصل الاجتماعي</span></div>
+          </div>
+        </div>
+
+        <div class="impact-scenario-card">
+          <div class="impact-scenario-copy">
+            <span class="micro-label">سيناريو أثر، وليس Forecast</span>
+            <h3>لو صلة منع نسبة بسيطة من الاستفسارات التي سببها البحث عن الخدمة</h3>
+            <p>نفترض فقط لأغراض الـPoC أن جزءا من المكالمات الواردة يمكن حله ذاتيا إذا عرف المستفيد الخدمة والأثر من حالته، ونفترض متوسط 6 دقائق للمكالمة. غيّر النسبة وشوف حجم الفرصة.</p>
+            <div id="impactRateButtons" class="impact-rate-buttons">
+              <button type="button" data-impact-rate="0.03">3%</button>
+              <button type="button" data-impact-rate="0.05" class="active">5%</button>
+              <button type="button" data-impact-rate="0.10">10%</button>
+            </div>
+          </div>
+          <div class="impact-scenario-results">
+            <div><small>مكالمات أقل في الربع</small><strong id="impactCallsQuarter">26,347</strong></div>
+            <div><small>ساعات عمل محتملة في الربع</small><strong id="impactHoursQuarter">2,635</strong></div>
+            <div><small>مكالمات أقل سنويا إذا تكرر نفس الحجم</small><strong id="impactCallsYear">105,388</strong></div>
+          </div>
+          <div class="impact-assumption">الحسبة: 526,945 مكالمة ربع سنوية × النسبة المختارة. ساعات العمل تفترض 6 دقائق لكل مكالمة. هذا نموذج حساسية لقياس الفرصة فقط، وليس وعدا أو توقعا تشغيليا.</div>
+        </div>
+
+        <details class="impact-method-details">
+          <summary>
+            <span><b>كيف نثبت أثر صلة في PoC؟</b><small>مؤشرات القياس وخطوات المقارنة قبل وبعد</small></span>
+          </summary>
+          <div class="impact-method-body">
+            <div class="impact-outcomes">
+              <article><span>↓</span><b>وقت الوصول للخدمة المناسبة</b><p>من أول سؤال حتى معرفة الخدمة أو الإجراء المرتبط بالحالة</p></article>
+              <article><span>↓</span><b>الرحلات غير المناسبة قبل التقديم</b><p>نكتشف عدم الارتباط أو نقص البيانات قبل دخول المستفيد في رحلة كاملة</p></article>
+              <article><span>↓</span><b>إعادة إدخال بيانات موجودة</b><p>نستخدم الملف المعروف ونطلب فقط المعلومة التي تغير النتيجة</p></article>
+              <article><span>↑</span><b>اكتشاف خدمات بدون معرفة اسمها</b><p>الخدمة تظهر بسبب الحالة أو الحدث، مو لأن المستفيد عرف المصطلح الحكومي</p></article>
+              <article><span>↑</span><b>الحل الذاتي للاستفسار</b><p>المستفيد يفهم الخدمة والسبب والمعلومة الناقصة قبل التحويل لقناة دعم</p></article>
+              <article><span>↑</span><b>وضوح أثر القرار قبل حدوثه</b><p>Digital Twin يسمح بمقارنة الحالة الحالية بالسيناريو بدون تغيير السجل الحقيقي</p></article>
+            </div>
+
+            <div class="impact-scorecard">
+              <div class="scorecard-copy">
+                <span class="micro-label">كيف نثبت الأثر في PoC</span>
+                <h3>Baseline قبل صلة، ثم نفس الرحلات بعد صلة</h3>
+                <p>بدل وضع نسبة نجاح من عندنا، نختار أحداثا عالية القيمة ونقيس الوقت والدقة وعدد الأسئلة والتحويلات قبل التجربة وبعدها.</p>
+              </div>
+              <div class="scorecard-steps">
+                <div><b>1</b><span>اختر 3 أحداث عالية القيمة</span></div>
+                <div><b>2</b><span>قِس الرحلة الحالية</span></div>
+                <div><b>3</b><span>شغل نفس الحالات على صلة</span></div>
+                <div><b>4</b><span>قارن النتائج بالقنوات الحالية</span></div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="services" class="content-section section-anchor">
+      <div class="shell">
+        <div class="section-heading split-heading">
+          <div>
+            <span class="eyebrow">قاعدة صلة</span>
+            <h2>الخدمة ما هي بطاقة فقط<br><span>خلفها بيانات وشروط ومصدر</span></h2>
+            <p>
+              درسنا خدمات من الوزارة ومن منظومة الموارد البشرية مثل صندوق تنمية الموارد البشرية، وربطنا كل خدمة بالبيانات المطلوبة وإشارات الظهور والشروط المنشورة.
+              القائمة هنا مختصرة حتى ما تتحول المنصة إلى كتالوج طويل. اضغط أي خدمة لفتح تفاصيلها وقواعدها ومصدرها.
+            </p>
+          </div>
+          <div class="catalog-summary">
+            <strong id="serviceCount">0</strong>
+            <span>خدمة مدروسة في النموذج</span>
+          </div>
+        </div>
+
+        <div id="serviceFilters" class="filter-row"></div>
+        <div id="serviceGrid" class="service-grid service-grid-compact"></div>
+        <div class="service-library-actions"><button id="serviceExpand" type="button" class="service-expand">عرض كل الخدمات</button></div>
+
+        <div id="serviceModal" class="service-modal hidden" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
+          <button class="service-modal-backdrop" type="button" data-close-service aria-label="إغلاق تفاصيل الخدمة"></button>
+          <article class="service-modal-panel">
+            <button class="service-modal-close" type="button" data-close-service aria-label="إغلاق">×</button>
+            <div id="serviceModalContent"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="benchmark" class="content-section benchmark-section section-anchor">
+      <div class="shell">
+        <div class="section-heading split-heading benchmark-heading">
+          <div>
+            <span class="eyebrow">Benchmark</span>
+            <h2>درسنا التجربة، مو شكل الواجهة<br><span>وحوّلنا الدروس إلى قرارات في صلة</span></h2>
+            <p>
+              كل بطاقة تحت تمثل تجربة حكومية مختلفة. الصفحة تعرض الخلاصة فقط حتى تبقى خفيفة.
+              اضغط على أي تجربة لفتح القصة كاملة: المشكلة، سبب البناء، الرحلة، التصميم، التكامل، البيانات، النتائج، التحديات، والدروس المطبقة في صلة.
+            </p>
+          </div>
+          <div class="benchmark-summary-note">
+            <strong>5</strong>
+            <span>تجارب حكومية<br>بأنماط مختلفة</span>
+          </div>
+        </div>
+
+        <div id="benchmarkGrid" class="benchmark-compact-grid"></div>
+
+        <div class="applied-strip">
+          <div class="applied-strip-head">
+            <span class="micro-label">وش طبقناه فعليا في صلة</span>
+            <p>خلاصة التصميم المستفاد من التجارب، بدون نسخ أي تجربة كما هي</p>
+          </div>
+          <div class="applied-patterns">
+            <div><b>LifeSG</b><span>ابدأ من حالة المستفيد ومرحلة حياته</span></div>
+            <div><b>Estonia</b><span>الحدث يجمع أكثر من خدمة في رحلة واحدة</span></div>
+            <div><b>France</b><span>افصل المحاكاة عن البيانات الرسمية</span></div>
+            <div><b>Tell Us Once</b><span>التغيير الواحد قد يؤثر على جهات متعددة</span></div>
+            <div><b>myGov</b><span>Data Mapping وحالة التنفيذ قبل الواجهة الذكية</span></div>
+          </div>
+        </div>
+
+        <details class="benchmark-matrix-details">
+          <summary>عرض مقارنة القدرات بين التجارب</summary>
+          <div id="benchmarkMatrix" class="benchmark-matrix"></div>
+        </details>
+
+        <details class="benchmark-insights-details">
+          <summary>
+            <span><b>قراءة التصميم</b><small>وش نأخذ، وش نحافظ عليه، وش نتجنب</small></span>
+          </summary>
+          <div id="benchmarkLessons" class="benchmark-lessons"></div>
+        </details>
+
+        <div id="benchmarkModal" class="service-modal benchmark-modal hidden" role="dialog" aria-modal="true" aria-labelledby="benchmarkModalTitle">
+          <button class="service-modal-backdrop" type="button" data-close-benchmark aria-label="إغلاق تفاصيل التجربة"></button>
+          <article class="service-modal-panel benchmark-modal-panel">
+            <button class="service-modal-close" type="button" data-close-benchmark aria-label="إغلاق">×</button>
+            <div id="benchmarkModalContent"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="design" class="content-section design-section section-anchor">
+      <div class="shell">
+        <div class="section-heading">
+          <span class="eyebrow">كيف صممنا صلة</span>
+          <h2>الذكاء في صلة مو في الرد الطويل<br><span>الذكاء في فصل الأدوار صح</span></h2>
+          <p>
+            صلة مصمم كقدرة مشتركة يمكن وضعها في التطبيق أو الموقع أو أي قناة لاحقة. واجهة المحادثة مجرد مدخل،
+            أما القرار التشغيلي فيمر على نفس البيانات ونفس القواعد في كل مرة.
+          </p>
+        </div>
+
+        <div class="architecture-card">
+          <div class="architecture-copy">
+            <span class="micro-label">المسار التشغيلي</span>
+            <h3>من كلام المستفيد إلى نتيجة قابلة للتفسير</h3>
+            <p>
+              طبقة فهم اللغة تستخرج المقصود والمتغيرات فقط. ملف المستفيد يكمل المعلومات المعروفة.
+              محرك القواعد يقرر النتائج المرتبطة، ثم طبقة الصياغة تشرحها بلغة واضحة دون اختراع شروط جديدة.
+            </p>
+          </div>
+          <div class="architecture-flow" aria-label="مخطط بنية صلة">
+            <div class="flow-node"><small>1</small><b>كلام المستفيد</b><span>لغة طبيعية</span></div>
+            <i>←</i>
+            <div class="flow-node"><small>2</small><b>فهم المقصود</b><span>نية ومتغيرات</span></div>
+            <i>←</i>
+            <div class="flow-node"><small>3</small><b>سياق المستفيد</b><span>بيانات معروفة</span></div>
+            <i>←</i>
+            <div class="flow-node core"><small>4</small><b>محرك القواعد</b><span>مصدر القرار</span></div>
+            <i>←</i>
+            <div class="flow-node"><small>5</small><b>شرح النتيجة</b><span>واضح ومفسر</span></div>
+          </div>
+        </div>
+
+        <div id="principlesGrid" class="principles-grid"></div>
+
+        <div class="signature-card">
+          <div>
+            <span class="micro-label">فكرة صلة المميزة</span>
+            <h3>توأم الحالة، محاكاة منفصلة عن الحقيقة</h3>
+            <p>
+              إذا كتب المستفيد سيناريو مستقبلي، صلة لا يغير ملفه الحقيقي. ينشئ نسخة افتراضية من الحالة،
+              يشغل عليها نفس محرك القواعد، ثم يقارن وش بقي كما هو وش الخدمات التي قد تتأثر.
+              نفس المحادثة تقدر تكمل السيناريو خطوة بخطوة بدون إعادة القصة من البداية.
+            </p>
+          </div>
+          <div class="signature-flow">
+            <span>حالتي الحالية</span>
+            <i>←</i>
+            <strong>نسخة افتراضية</strong>
+            <i>←</i>
+            <span>فرق الخدمات والآثار</span>
+          </div>
+        </div>
+
+        <div class="build-next-card">
+          <div>
+            <span class="micro-label">لو تحولت من PoC إلى منتج</span>
+            <h3>وش يحتاج الفريق الحقيقي؟</h3>
+            <p>
+              نفس الفكرة الحالية، لكن بدل البيانات التجريبية نربط مصادر الوزارة، وبدل ملفات JSON تصبح القواعد كتالوجًا محكومًا بمالكين وإصدارات ومراجعة مستمرة.
+            </p>
+          </div>
+          <div class="next-grid">
+            <article><b>Data Map</b><span>مصدر كل معلومة وحداثتها وصلاحية استخدامها</span></article>
+            <article><b>Event Model</b><span>ما الذي تغيّر ومتى أصبح نافذًا</span></article>
+            <article><b>Rules Catalog</b><span>قاعدة موثقة لكل خدمة مع مالك وتاريخ إصدار</span></article>
+            <article><b>Integration API</b><span>محرك واحد يخدم التطبيق والموقع والشات</span></article>
+            <article><b>AI Orchestration</b><span>فهم اللغة وطلب المعلومة الناقصة وشرح النتائج</span></article>
+            <article><b>Governance & Evals</b><span>اختبارات منطق ومراقبة جودة وتدقيق للنتائج</span></article>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-inner">
+      <div>
+        <strong>صلة</strong>
+        <span>نموذج تصوري لخدمة تبدأ من حالة المستفيد</span>
+      </div>
+      <div class="footer-links">
+        <span>المصادر داخل كل نتيجة وكل خدمة</span>
+        <a href="https://ojalsadei.github.io/my-portfolio/" target="_blank" rel="noopener">Osama Alsadei · Portfolio</a>
+      </div>
+    </div>
+  </footer>
+
+  <template id="messageTemplate">
+    <article class="message">
+      <div class="message-body"></div>
+    </article>
+  </template>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
 `````
 
 ## `public/app.js`
@@ -2501,6 +2691,21 @@ function benchmarkById(id) {
   return state.bootstrap?.benchmarks?.find(item => item.id === id) || null;
 }
 
+function benchmarkList(values = []) {
+  return values.length
+    ? `<ul>${values.map(value => `<li>${escapeHtml(value)}</li>`).join('')}</ul>`
+    : '<p>لا توجد تفاصيل منشورة كافية في المصادر المستخدمة.</p>';
+}
+
+function benchmarkDetailCard(title, values = []) {
+  return `
+    <article class="benchmark-detail-card">
+      <b>${escapeHtml(title)}</b>
+      ${benchmarkList(values)}
+    </article>
+  `;
+}
+
 function openBenchmarkModal(id) {
   const item = benchmarkById(id);
   if (!item || !benchmarkModal || !benchmarkModalContent) return;
@@ -2508,9 +2713,10 @@ function openBenchmarkModal(id) {
   const metrics = (item.metrics || []).map(metric => `
     <div><small>${escapeHtml(metric.label)}</small><strong>${escapeHtml(metric.value)}</strong></div>
   `).join('');
-  const built = (item.whatTheyBuilt || []).map(value => `<li>${escapeHtml(value)}</li>`).join('');
-  const results = (item.results || []).map(value => `<li>${escapeHtml(value)}</li>`).join('');
-  const applied = (item.appliedToSilah || []).map(value => `<li>${escapeHtml(value)}</li>`).join('');
+  const results = benchmarkList(item.results || []);
+  const challenges = benchmarkList(item.challenges || []);
+  const lessons = benchmarkList(item.lessons || []);
+  const applied = benchmarkList(item.appliedToSilah || []);
   const sources = (item.sources || []).map(source => `
     <a href="${linkSafe(source.url)}" target="_blank" rel="noopener">${escapeHtml(source.label)} ↗</a>
   `).join('');
@@ -2518,8 +2724,9 @@ function openBenchmarkModal(id) {
   benchmarkModalContent.innerHTML = `
     <div class="benchmark-modal-eyebrows">
       <span>${escapeHtml(item.country)}</span>
-      ${item.historical ? '<span class="historical-note">نتائج تاريخية موضحة داخل البطاقة</span>' : ''}
+      ${item.historical ? '<span class="historical-note">الأرقام التاريخية موضحة بوضوح</span>' : ''}
       ${item.cautionCard ? '<span class="caution-note">تجربة تحذيرية للتكامل</span>' : ''}
+      <span class="review-note">مراجعة ${escapeHtml(item.sourceDate || '')}</span>
     </div>
     <h3 id="benchmarkModalTitle">${escapeHtml(item.name)}</h3>
     <p class="benchmark-modal-headline">${escapeHtml(item.headline)}</p>
@@ -2530,26 +2737,49 @@ function openBenchmarkModal(id) {
 
     <div class="benchmark-story-block">
       <span>01</span>
-      <div><b>ليش بدأوا التجربة؟</b><p>${escapeHtml(item.why || '')}</p></div>
+      <div><b>المشكلة اللي كانوا يحلونها</b><p>${escapeHtml(item.problem || item.why || '')}</p></div>
     </div>
     <div class="benchmark-story-block">
       <span>02</span>
-      <div><b>وش سووا فعليا؟</b><ul>${built}</ul></div>
+      <div><b>ليش بنوا الحل</b><p>${escapeHtml(item.whyBuilt || item.why || '')}</p></div>
     </div>
+
+    <div class="benchmark-detail-grid">
+      ${benchmarkDetailCard('وش بنوا فعليا', item.whatTheyBuilt || [])}
+      ${benchmarkDetailCard('كيف تمشي الرحلة', item.journey || [])}
+      ${benchmarkDetailCard('كيف صمموا التجربة', item.design || [])}
+      ${benchmarkDetailCard('كيف اشتغل التكامل', item.integration || [])}
+      ${benchmarkDetailCard('وش البيانات المستخدمة', item.dataUsed || [])}
+    </div>
+
     <div class="benchmark-story-block">
       <span>03</span>
-      <div><b>وش كانت النتيجة؟</b><ul>${results}</ul></div>
+      <div><b>النتائج والأرقام المنشورة</b>${results}</div>
     </div>
-    <div class="benchmark-story-block applied">
+    <div class="benchmark-story-block benchmark-challenges-block">
       <span>04</span>
-      <div><b>وش طبقنا منها في صلة؟</b><ul>${applied}</ul></div>
+      <div><b>التحديات والقيود</b>${challenges}</div>
     </div>
+
+    <div class="benchmark-learning-grid">
+      <article class="benchmark-learning-card">
+        <span class="micro-label">الدروس لصلة</span>
+        <h4>وش نتعلم من التجربة</h4>
+        ${lessons}
+      </article>
+      <article class="benchmark-learning-card applied">
+        <span class="micro-label">مطبق في النموذج</span>
+        <h4>وش طبقناه فعليا في صلة</h4>
+        ${applied}
+      </article>
+    </div>
+
     <div class="benchmark-caution-box">
-      <b>وش ننتبه له؟</b>
+      <b>وش ما نبي نكرر أو نفترض</b>
       <p>${escapeHtml(item.caution || '')}</p>
     </div>
     <div class="benchmark-source-block">
-      <b>المصادر</b>
+      <b>المصادر الرسمية</b>
       <div>${sources}</div>
     </div>
   `;
@@ -2788,424 +3018,6 @@ boot().catch(error => {
   messages.innerHTML = '';
   addAssistantMessage('تعذر تحميل بيانات صلة. شغّل الخادم من مجلد المشروع باستخدام npm start ثم افتح الرابط المحلي الذي يظهر في الطرفية.');
 });
-`````
-
-## `public/index.html`
-
-`````text
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0f6b43">
-  <title>صلة | خدمات تفهم حالتك</title>
-  <meta name="description" content="صلة نموذج تصوري يربط بيانات المستفيد بالقواعد والخدمات، ويفهم أسئلته باللغة الطبيعية دون تحويل الذكاء الاصطناعي إلى جهة قرار.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <header class="site-header">
-    <div class="shell header-inner">
-      <button class="brand" data-scroll="chat" aria-label="العودة إلى اسأل صلة">
-        <strong>صلة</strong>
-        <span>الخدمة تبدأ من حالتك</span>
-      </button>
-
-      <nav class="main-nav" aria-label="التنقل الرئيسي">
-        <button class="nav-link active" data-scroll="chat">اسأل صلة</button>
-        <button class="nav-link" data-scroll="impact">الأثر المتوقع</button>
-        <button class="nav-link" data-scroll="services">قاعدة الخدمات</button>
-        <button class="nav-link" data-scroll="benchmark">Benchmark</button>
-        <button class="nav-link" data-scroll="design">كيف صممنا صلة</button>
-      </nav>
-
-      <div class="header-actions">
-        <label class="profile-picker">
-          <span>الحالة التجريبية</span>
-          <select id="profileSelect" aria-label="اختيار الحالة التجريبية"></select>
-        </label>
-        <span id="aiStatus" class="status-pill loading">جار التحقق</span>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section id="chat" class="hero-section section-anchor">
-      <div class="shell">
-        <div class="hero-intro">
-          <span class="eyebrow">نموذج تفاعلي تصوري</span>
-          <h1>تكلم بطريقتك<br><span>وصلة يفهم وش يخص حالتك</span></h1>
-          <p>
-            صلة لا ينتظر منك تعرف اسم الخدمة. يبدأ من بياناتك الحالية، يفهم سؤالك أو السيناريو اللي تفكر فيه،
-            ثم يمرر الحالة على قواعد موثقة ويعرض لك فقط النتائج المرتبطة بك.
-          </p>
-        </div>
-
-        <div class="context-bar" aria-label="ملخص بيانات الحالة التجريبية">
-          <div class="context-copy">
-            <span class="micro-label">البيانات المعروفة الآن</span>
-            <strong id="profileHeadline">جار تحميل الحالة</strong>
-          </div>
-          <div id="profileFacts" class="fact-row"></div>
-        </div>
-
-        <div class="chat-card">
-          <div class="chat-topbar">
-            <div>
-              <span class="micro-label">اسأل صلة</span>
-              <h2>ما تحتاج تبدأ من اسم الخدمة</h2>
-              <p>اكتب سؤالك مثل ما تقوله لموظف يعرف ملفك</p>
-            </div>
-            <div class="chat-top-actions">
-              <div class="chat-trust">
-                <span class="trust-dot"></span>
-                <span>النتائج النظامية من محرك قواعد واحد</span>
-              </div>
-              <button id="resetChatButton" class="reset-chat-button" type="button" title="بدء محادثة جديدة بدون تغيير الحالة التجريبية">
-                <span aria-hidden="true">↻</span>
-                محادثة جديدة
-              </button>
-            </div>
-          </div>
-
-          <div id="starterArea" class="starter-area">
-            <div class="starter-copy">
-              <strong>وش ودك تعرف؟</strong>
-              <span>اختر سؤال أو اكتب بطريقتك</span>
-            </div>
-            <div id="suggestions" class="suggestions"></div>
-          </div>
-
-          <div id="messages" class="messages" aria-live="polite"></div>
-
-          <div id="typing" class="typing hidden" aria-hidden="true">
-            <span></span><span></span><span></span>
-            <small>صلة يقرأ السياق ويشغل القواعد</small>
-          </div>
-
-          <form id="chatForm" class="composer">
-            <textarea id="messageInput" rows="1" maxlength="1200" placeholder="اكتب بطريقتك... مثال: جاني شغل بستة ونص ووافقت بس ما باشرت، وش يتغير؟" aria-label="رسالتك إلى صلة"></textarea>
-            <button id="sendButton" type="submit">إرسال</button>
-          </form>
-
-          <div class="composer-note">
-            الشخصيات والبيانات في هذه التجربة افتراضية. القواعد والخدمات مبنية على مصادر رسمية منشورة ولا تمثل قرار أهلية رسمي.
-          </div>
-        </div>
-
-        <div id="miniDashboard" class="mini-dashboard"></div>
-
-        <div class="intelligence-grid">
-          <section class="radar-card" aria-labelledby="radarTitle">
-            <div class="card-heading-row">
-              <div>
-                <span class="micro-label">خريطة صلة</span>
-                <h3 id="radarTitle">وش يعرف عنك النظام، وش اللي يستحق التحقق؟</h3>
-              </div>
-              <span class="quiet-pill">تتغير مع الحالة</span>
-            </div>
-            <div id="serviceRadar" class="service-radar"></div>
-          </section>
-
-          <section id="simulationDock" class="twin-card idle" aria-labelledby="twinTitle">
-            <div class="card-heading-row">
-              <div>
-                <div class="micro-label-with-info">
-                  <span class="micro-label">توأم الحالة</span>
-                  <span class="info-popover">
-                    <button type="button" class="info-trigger" aria-label="شرح توأم الحالة">i</button>
-                    <span class="info-panel" role="tooltip">
-                      <strong>وش يعني Digital Twin في صلة؟</strong>
-                      <span>هو نسخة افتراضية ومؤقتة من حالة المستفيد. إذا قلت مثلا: لو نزل راتبي إلى 4000، صلة لا يغيّر بياناتك الحالية، بل ينسخ الحالة المعروفة ويطبق التغيير على النسخة فقط.</span>
-                      <span>بعدها يشغل نفس محرك القواعد على الحالتين ويقارن الخدمات والآثار. السيناريو يبقى منفصلا عن السجل الحقيقي ولا يتحول إلى تحديث رسمي.</span>
-                    </span>
-                  </span>
-                </div>
-                <h3 id="twinTitle">جرّب قرارك على نسخة افتراضية من حالتك</h3>
-              </div>
-              <span id="twinStatus" class="quiet-pill">جاهز للمحاكاة</span>
-            </div>
-            <div id="simulationContent" class="twin-empty">
-              اكتب مثلا: لو نزل راتبي إلى 4000، أو جاني عرض جديد ووافقت بس ما باشرت
-            </div>
-          </section>
-        </div>
-      </div>
-    </section>
-
-
-    <section id="impact" class="content-section impact-section section-anchor">
-      <div class="shell">
-        <div class="section-heading split-heading impact-heading">
-          <div>
-            <span class="eyebrow">الأثر المتوقع</span>
-            <h2>صلة ما يضيف قناة جديدة فقط<br><span>يقلل الاحتكاك قبل ما يبدأ الطلب</span></h2>
-            <p>
-              الوزارة تعمل على نطاق رقمي كبير. لذلك قيمة صلة تقاس في تقليل البحث، والأسئلة المتكررة، والرحلات غير المناسبة، وإعادة إدخال البيانات.
-              الأرقام تحت تفصل بين Baseline منشور وبين سيناريو أثر افتراضي للـPoC.
-            </p>
-          </div>
-          <div class="impact-baseline">
-            <div><strong>855</strong><span>خدمة إلكترونية معروضة في إحصاءات الوزارة</span></div>
-            <div><strong>36,687,106</strong><span>معاملة منجزة معروضة في الموقع الرسمي</span></div>
-            <a href="https://www.hrsd.gov.sa/" target="_blank" rel="noopener">الموقع الرسمي للوزارة ↗</a>
-          </div>
-        </div>
-
-        <div class="impact-voice-card">
-          <div class="impact-voice-head">
-            <div>
-              <span class="micro-label">Baseline من صوت المستفيد</span>
-              <h3>وين ممكن يظهر أثر صلة على القنوات الحالية؟</h3>
-              <p>نستخدم أرقام الربع الثاني 2026 كنقطة بداية لسيناريو قياس، وليس كتوقع بأن كل التفاعلات قابلة للتخفيض.</p>
-            </div>
-            <a href="https://www.hrsd.gov.sa/ministry/e-participation/beneficiary-voice-reports" target="_blank" rel="noopener">تقارير صوت المستفيد ↗</a>
-          </div>
-          <div class="voice-metrics">
-            <div><strong>757,960</strong><span>إجمالي التفاعلات في الربع</span></div>
-            <div><strong>526,945</strong><span>مكالمات واردة</span></div>
-            <div><strong>58,661</strong><span>شكاوى</span></div>
-            <div><strong>172,354</strong><span>تفاعلات عبر التواصل الاجتماعي</span></div>
-          </div>
-        </div>
-
-        <div class="impact-scenario-card">
-          <div class="impact-scenario-copy">
-            <span class="micro-label">سيناريو أثر، وليس Forecast</span>
-            <h3>لو صلة منع نسبة بسيطة من الاستفسارات التي سببها البحث عن الخدمة</h3>
-            <p>نفترض فقط لأغراض الـPoC أن جزءا من المكالمات الواردة يمكن حله ذاتيا إذا عرف المستفيد الخدمة والأثر من حالته، ونفترض متوسط 6 دقائق للمكالمة. غيّر النسبة وشوف حجم الفرصة.</p>
-            <div id="impactRateButtons" class="impact-rate-buttons">
-              <button type="button" data-impact-rate="0.03">3%</button>
-              <button type="button" data-impact-rate="0.05" class="active">5%</button>
-              <button type="button" data-impact-rate="0.10">10%</button>
-            </div>
-          </div>
-          <div class="impact-scenario-results">
-            <div><small>مكالمات أقل في الربع</small><strong id="impactCallsQuarter">26,347</strong></div>
-            <div><small>ساعات عمل محتملة في الربع</small><strong id="impactHoursQuarter">2,635</strong></div>
-            <div><small>مكالمات أقل سنويا إذا تكرر نفس الحجم</small><strong id="impactCallsYear">105,388</strong></div>
-          </div>
-          <div class="impact-assumption">الحسبة: 526,945 مكالمة ربع سنوية × النسبة المختارة. ساعات العمل تفترض 6 دقائق لكل مكالمة. هذا نموذج حساسية لقياس الفرصة فقط، وليس وعدا أو توقعا تشغيليا.</div>
-        </div>
-
-        <details class="impact-method-details">
-          <summary>
-            <span><b>كيف نثبت أثر صلة في PoC؟</b><small>مؤشرات القياس وخطوات المقارنة قبل وبعد</small></span>
-          </summary>
-          <div class="impact-method-body">
-            <div class="impact-outcomes">
-              <article><span>↓</span><b>وقت الوصول للخدمة المناسبة</b><p>من أول سؤال حتى معرفة الخدمة أو الإجراء المرتبط بالحالة</p></article>
-              <article><span>↓</span><b>الرحلات غير المناسبة قبل التقديم</b><p>نكتشف عدم الارتباط أو نقص البيانات قبل دخول المستفيد في رحلة كاملة</p></article>
-              <article><span>↓</span><b>إعادة إدخال بيانات موجودة</b><p>نستخدم الملف المعروف ونطلب فقط المعلومة التي تغير النتيجة</p></article>
-              <article><span>↑</span><b>اكتشاف خدمات بدون معرفة اسمها</b><p>الخدمة تظهر بسبب الحالة أو الحدث، مو لأن المستفيد عرف المصطلح الحكومي</p></article>
-              <article><span>↑</span><b>الحل الذاتي للاستفسار</b><p>المستفيد يفهم الخدمة والسبب والمعلومة الناقصة قبل التحويل لقناة دعم</p></article>
-              <article><span>↑</span><b>وضوح أثر القرار قبل حدوثه</b><p>Digital Twin يسمح بمقارنة الحالة الحالية بالسيناريو بدون تغيير السجل الحقيقي</p></article>
-            </div>
-
-            <div class="impact-scorecard">
-              <div class="scorecard-copy">
-                <span class="micro-label">كيف نثبت الأثر في PoC</span>
-                <h3>Baseline قبل صلة، ثم نفس الرحلات بعد صلة</h3>
-                <p>بدل وضع نسبة نجاح من عندنا، نختار أحداثا عالية القيمة ونقيس الوقت والدقة وعدد الأسئلة والتحويلات قبل التجربة وبعدها.</p>
-              </div>
-              <div class="scorecard-steps">
-                <div><b>1</b><span>اختر 3 أحداث عالية القيمة</span></div>
-                <div><b>2</b><span>قِس الرحلة الحالية</span></div>
-                <div><b>3</b><span>شغل نفس الحالات على صلة</span></div>
-                <div><b>4</b><span>قارن النتائج بالقنوات الحالية</span></div>
-              </div>
-            </div>
-          </div>
-        </details>
-      </div>
-    </section>
-
-    <section id="services" class="content-section section-anchor">
-      <div class="shell">
-        <div class="section-heading split-heading">
-          <div>
-            <span class="eyebrow">قاعدة صلة</span>
-            <h2>الخدمة ما هي بطاقة فقط<br><span>خلفها بيانات وشروط ومصدر</span></h2>
-            <p>
-              درسنا خدمات من الوزارة ومن منظومة الموارد البشرية مثل صندوق تنمية الموارد البشرية، وربطنا كل خدمة بالبيانات المطلوبة وإشارات الظهور والشروط المنشورة.
-              القائمة هنا مختصرة حتى ما تتحول المنصة إلى كتالوج طويل. اضغط أي خدمة لفتح تفاصيلها وقواعدها ومصدرها.
-            </p>
-          </div>
-          <div class="catalog-summary">
-            <strong id="serviceCount">0</strong>
-            <span>خدمة مدروسة في النموذج</span>
-          </div>
-        </div>
-
-        <div id="serviceFilters" class="filter-row"></div>
-        <div id="serviceGrid" class="service-grid service-grid-compact"></div>
-        <div class="service-library-actions"><button id="serviceExpand" type="button" class="service-expand">عرض كل الخدمات</button></div>
-
-        <div id="serviceModal" class="service-modal hidden" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
-          <button class="service-modal-backdrop" type="button" data-close-service aria-label="إغلاق تفاصيل الخدمة"></button>
-          <article class="service-modal-panel">
-            <button class="service-modal-close" type="button" data-close-service aria-label="إغلاق">×</button>
-            <div id="serviceModalContent"></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="benchmark" class="content-section benchmark-section section-anchor">
-      <div class="shell">
-        <div class="section-heading split-heading benchmark-heading">
-          <div>
-            <span class="eyebrow">Benchmark</span>
-            <h2>درسنا التجربة، مو شكل الواجهة<br><span>وحوّلنا الدروس إلى قرارات في صلة</span></h2>
-            <p>
-              كل بطاقة تحت تمثل تجربة حكومية مختلفة. الصفحة تعرض الخلاصة فقط حتى تبقى خفيفة.
-              اضغط على اسم التجربة لفتح القصة كاملة: ليش بدأت، وش بنوا، وش النتائج، وش طبقنا في صلة، وأين كانت المخاطر.
-            </p>
-          </div>
-          <div class="benchmark-summary-note">
-            <strong>5</strong>
-            <span>تجارب حكومية<br>بأنماط مختلفة</span>
-          </div>
-        </div>
-
-        <div id="benchmarkGrid" class="benchmark-compact-grid"></div>
-
-        <div class="applied-strip">
-          <div class="applied-strip-head">
-            <span class="micro-label">وش طبقناه فعليا في صلة</span>
-            <p>خلاصة التصميم المستفاد من التجارب، بدون نسخ أي تجربة كما هي</p>
-          </div>
-          <div class="applied-patterns">
-            <div><b>LifeSG</b><span>ابدأ من حالة المستفيد ومرحلة حياته</span></div>
-            <div><b>Estonia</b><span>الحدث يجمع أكثر من خدمة في رحلة واحدة</span></div>
-            <div><b>France</b><span>افصل المحاكاة عن البيانات الرسمية</span></div>
-            <div><b>Tell Us Once</b><span>التغيير الواحد قد يؤثر على جهات متعددة</span></div>
-            <div><b>myGov</b><span>Data Mapping وحالة التنفيذ قبل الواجهة الذكية</span></div>
-          </div>
-        </div>
-
-        <details class="benchmark-matrix-details">
-          <summary>عرض مقارنة القدرات بين التجارب</summary>
-          <div id="benchmarkMatrix" class="benchmark-matrix"></div>
-        </details>
-
-        <details class="benchmark-insights-details">
-          <summary>
-            <span><b>قراءة التصميم</b><small>وش نأخذ، وش نحافظ عليه، وش نتجنب</small></span>
-          </summary>
-          <div id="benchmarkLessons" class="benchmark-lessons"></div>
-        </details>
-
-        <div id="benchmarkModal" class="service-modal benchmark-modal hidden" role="dialog" aria-modal="true" aria-labelledby="benchmarkModalTitle">
-          <button class="service-modal-backdrop" type="button" data-close-benchmark aria-label="إغلاق تفاصيل التجربة"></button>
-          <article class="service-modal-panel benchmark-modal-panel">
-            <button class="service-modal-close" type="button" data-close-benchmark aria-label="إغلاق">×</button>
-            <div id="benchmarkModalContent"></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="design" class="content-section design-section section-anchor">
-      <div class="shell">
-        <div class="section-heading">
-          <span class="eyebrow">كيف صممنا صلة</span>
-          <h2>الذكاء في صلة مو في الرد الطويل<br><span>الذكاء في فصل الأدوار صح</span></h2>
-          <p>
-            صلة مصمم كقدرة مشتركة يمكن وضعها في التطبيق أو الموقع أو أي قناة لاحقة. واجهة المحادثة مجرد مدخل،
-            أما القرار التشغيلي فيمر على نفس البيانات ونفس القواعد في كل مرة.
-          </p>
-        </div>
-
-        <div class="architecture-card">
-          <div class="architecture-copy">
-            <span class="micro-label">المسار التشغيلي</span>
-            <h3>من كلام المستفيد إلى نتيجة قابلة للتفسير</h3>
-            <p>
-              طبقة فهم اللغة تستخرج المقصود والمتغيرات فقط. ملف المستفيد يكمل المعلومات المعروفة.
-              محرك القواعد يقرر النتائج المرتبطة، ثم طبقة الصياغة تشرحها بلغة واضحة دون اختراع شروط جديدة.
-            </p>
-          </div>
-          <div class="architecture-flow" aria-label="مخطط بنية صلة">
-            <div class="flow-node"><small>1</small><b>كلام المستفيد</b><span>لغة طبيعية</span></div>
-            <i>←</i>
-            <div class="flow-node"><small>2</small><b>فهم المقصود</b><span>نية ومتغيرات</span></div>
-            <i>←</i>
-            <div class="flow-node"><small>3</small><b>سياق المستفيد</b><span>بيانات معروفة</span></div>
-            <i>←</i>
-            <div class="flow-node core"><small>4</small><b>محرك القواعد</b><span>مصدر القرار</span></div>
-            <i>←</i>
-            <div class="flow-node"><small>5</small><b>شرح النتيجة</b><span>واضح ومفسر</span></div>
-          </div>
-        </div>
-
-        <div id="principlesGrid" class="principles-grid"></div>
-
-        <div class="signature-card">
-          <div>
-            <span class="micro-label">فكرة صلة المميزة</span>
-            <h3>توأم الحالة، محاكاة منفصلة عن الحقيقة</h3>
-            <p>
-              إذا كتب المستفيد سيناريو مستقبلي، صلة لا يغير ملفه الحقيقي. ينشئ نسخة افتراضية من الحالة،
-              يشغل عليها نفس محرك القواعد، ثم يقارن وش بقي كما هو وش الخدمات التي قد تتأثر.
-              نفس المحادثة تقدر تكمل السيناريو خطوة بخطوة بدون إعادة القصة من البداية.
-            </p>
-          </div>
-          <div class="signature-flow">
-            <span>حالتي الحالية</span>
-            <i>←</i>
-            <strong>نسخة افتراضية</strong>
-            <i>←</i>
-            <span>فرق الخدمات والآثار</span>
-          </div>
-        </div>
-
-        <div class="build-next-card">
-          <div>
-            <span class="micro-label">لو تحولت من PoC إلى منتج</span>
-            <h3>وش يحتاج الفريق الحقيقي؟</h3>
-            <p>
-              نفس الفكرة الحالية، لكن بدل البيانات التجريبية نربط مصادر الوزارة، وبدل ملفات JSON تصبح القواعد كتالوجًا محكومًا بمالكين وإصدارات ومراجعة مستمرة.
-            </p>
-          </div>
-          <div class="next-grid">
-            <article><b>Data Map</b><span>مصدر كل معلومة وحداثتها وصلاحية استخدامها</span></article>
-            <article><b>Event Model</b><span>ما الذي تغيّر ومتى أصبح نافذًا</span></article>
-            <article><b>Rules Catalog</b><span>قاعدة موثقة لكل خدمة مع مالك وتاريخ إصدار</span></article>
-            <article><b>Integration API</b><span>محرك واحد يخدم التطبيق والموقع والشات</span></article>
-            <article><b>AI Orchestration</b><span>فهم اللغة وطلب المعلومة الناقصة وشرح النتائج</span></article>
-            <article><b>Governance & Evals</b><span>اختبارات منطق ومراقبة جودة وتدقيق للنتائج</span></article>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="shell footer-inner">
-      <div>
-        <strong>صلة</strong>
-        <span>نموذج تصوري لخدمة تبدأ من حالة المستفيد</span>
-      </div>
-      <div class="footer-links">
-        <span>المصادر داخل كل نتيجة وكل خدمة</span>
-        <a href="https://ojalsadei.github.io/my-portfolio/" target="_blank" rel="noopener">Osama Alsadei · Portfolio</a>
-      </div>
-    </div>
-  </footer>
-
-  <template id="messageTemplate">
-    <article class="message">
-      <div class="message-body"></div>
-    </article>
-  </template>
-
-  <script type="module" src="/app.js"></script>
-</body>
-</html>
 `````
 
 ## `public/styles.css`
@@ -3662,6 +3474,18 @@ body.modal-open{overflow:hidden}
 .benchmark-story-block b{display:block;font-size:11px;margin-bottom:6px}
 .benchmark-story-block p{margin:0;color:var(--ink-2);font-size:10.5px;line-height:1.85}
 .benchmark-story-block ul{margin:0;padding:0 17px 0 0;color:var(--ink-2);font-size:10.5px;line-height:1.85}
+.benchmark-modal-eyebrows .review-note{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.benchmark-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:4px 0 15px}
+.benchmark-detail-card{padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--surface-2)}
+.benchmark-detail-card b{display:block;margin-bottom:7px;font-size:10.5px;color:var(--ink)}
+.benchmark-detail-card ul,.benchmark-learning-card ul{margin:0;padding:0 17px 0 0;color:var(--ink-2);font-size:10px;line-height:1.8}
+.benchmark-detail-card p{margin:0;color:var(--muted);font-size:10px;line-height:1.7}
+.benchmark-challenges-block>span{background:#fff4e8;color:#8a4b08}
+.benchmark-learning-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:4px 0 16px}
+.benchmark-learning-card{padding:15px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.benchmark-learning-card.applied{background:var(--green-soft);border-color:rgba(19,116,72,.16)}
+.benchmark-learning-card h4{margin:5px 0 8px;font-size:12px}
+
 .benchmark-caution-box{padding:13px 14px;border:1px solid #ead7ad;border-radius:12px;background:var(--warning-soft)}
 .benchmark-caution-box b{display:block;color:#725419;font-size:10px}
 .benchmark-caution-box p{margin:5px 0 0;color:#6b5b36;font-size:9.5px;line-height:1.7}
@@ -3678,7 +3502,7 @@ body.modal-open{overflow:hidden}
 @media(max-width:760px){
   .chat-topbar{align-items:flex-start}.chat-top-actions{justify-content:flex-start}
   .impact-voice-head{flex-direction:column}.impact-scenario-card{grid-template-columns:1fr}.impact-assumption{grid-column:auto}
-  .benchmark-compact-grid{grid-template-columns:1fr 1fr}.applied-patterns{grid-template-columns:1fr 1fr}.benchmark-modal-metrics{grid-template-columns:1fr 1fr}
+  .benchmark-compact-grid{grid-template-columns:1fr 1fr}.applied-patterns{grid-template-columns:1fr 1fr}.benchmark-modal-metrics{grid-template-columns:1fr 1fr}.benchmark-detail-grid,.benchmark-learning-grid{grid-template-columns:1fr}
 }
 @media(max-width:500px){
   .benchmark-compact-grid,.applied-patterns,.voice-metrics{grid-template-columns:1fr}
@@ -3699,1595 +3523,6 @@ body.modal-open{overflow:hidden}
 .impact-method-body .impact-outcomes{margin-top:15px}
 .impact-method-body .impact-scorecard{margin-bottom:0}
 .benchmark-insights-details .benchmark-lessons{margin:0;padding:14px;border-top:1px solid var(--line)}
-`````
-
-## `README.md`
-
-`````text
-# صلة
-
-صلة نموذج GovTech تصوري يبدأ من بيانات المستفيد، يفهم كلامه باللغة الطبيعية، ثم يمرر الحالة إلى محرك قواعد واحد يعرض الخدمات والآثار المرتبطة بشكل قابل للتفسير.
-
-هذه النسخة تركز على جودة المحادثة. الفكرة الأساسية أن النموذج اللغوي لا يحمل المنطق النظامي ولا يحتاج رؤية كتالوج الخدمات كامل في كل رسالة.
-
-## أسرع تشغيل
-
-على Windows اضغط مرتين على:
-
-```text
-SETUP_AND_START.cmd
-```
-
-الصق مفتاح Groq مرة واحدة. السكربت ينشئ `.env` محليا، يشغل فحص الأمان والاختبارات، ثم يبدأ الخادم.
-
-افتح:
-
-```text
-http://localhost:3000
-```
-
-إذا كان المنفذ مستخدما، غير `PORT` داخل `.env` إلى 3001 مثلا.
-
-## واجهة العرض V7
-
-V7 لا تغير قواعد V6، بل تجعل العرض التنفيذي أقصر وأوضح بدون حذف المحتوى:
-
-- Benchmark من خمس تجارب حكومية يظهر كبطاقات مختصرة، والتفاصيل الكاملة تفتح عند الضغط فقط
-- كل تجربة تعرض سبب البداية، ما تم بناؤه، النتائج المنشورة، ما استلهمناه في صلة، التحذيرات والمصادر الرسمية
-- قسم الأثر يفصل Baseline منشور عن سيناريو أثر افتراضي قابل لتغيير النسبة، ويصرح بأن الحسبة ليست توقعا تشغيليا
-- تفاصيل مؤشرات القياس ومنهجية الـPoC مطوية افتراضيا لتقليل طول الصفحة
-- زر `محادثة جديدة` يمسح تاريخ المحادثة والسيناريو فقط ويحتفظ بالشخصية المختارة
-- شرح `Digital Twin` متاح من علامة المعلومات بجانب توأم الحالة، ويظهر عند المرور أو التركيز بلوحة المفاتيح
-- مقارنة القدرات وقراءة الدروس في Benchmark تستخدم Progressive Disclosure حتى يبقى المحتوى موجودا بدون إطالة الصفحة
-
-## محرك المحادثة V6
-
-المسار الحالي:
-
-```text
-رسالة المستفيد
-      ↓
-Refine محلي للنص
-      ↓
-استخراج حقائق واضحة مثل المبلغ والمرحلة والنفي
-      ↓
-دمج Session Slots السابقة
-      ↓
-استرجاع معرفة محدود عند الحاجة فقط
-      ↓
-Groq مرة واحدة إذا بقي غموض لغوي
-      ↓
-Validation للحقائق
-      ↓
-Rules Engine
-      ↓
-رد مبني محليا من نتائج القواعد
-```
-
-أهم الفروقات:
-
-- `جاني شغل بستة ونص` يفهم محليا على أنه عرض وظيفي بقيمة 6500 ريال
-- `وافقت بس ما باشرت` تحفظ كمرحلة قبول بدون بدء العمل أو الدخل
-- `راتبي بيصير 7` لا يحول إلى 7000 بصمت، بل يطلب تأكيدا
-- المعلومة الموجودة في الرسالة أو سياق الجلسة لا يسأل عنها مرة ثانية
-- أسئلة الأحداث مثل وظيفة جديدة أو تغير دخل لا ترسل كتالوج الخدمات إلى Groq أصلا
-- أسئلة الخدمة الغامضة ترسل بحد أقصى 3 خدمات مرشحة فقط
-- اسم خدمة واضح أو سؤال واضح يمكن أن يعمل بدون AI
-- Groq يستخدم للفهم اللغوي فقط، ولا يحدد الأهلية ولا يكتب القرار النهائي
-- الحقائق الحتمية المحلية تتغلب على أي تصنيف متعارض من النموذج
-- إذا Groq تأخر أو تعطل، صلة يرجع للمسار المحلي ولا يترك الطلب Pending
-- سجل المحادثة المرسل للنموذج يقتصر على آخر 3 أدوار فقط
-- رد المساعد لا يحرك نافذة المحادثة تلقائيا، موضع القراءة يبقى ثابتا حتى ينزل المستخدم بنفسه
-
-التفاصيل في `docs/CHAT_ENGINE.md`.
-
-### ما تغير في V6
-
-V6 يعامل رسالة المستفيد كإطار دلالي بدل البحث عن كلمات منفصلة. الإطار يفصل بين النية والحدث والنفي والزمن والمرحلة والمبلغ ونوع المبلغ والخدمة المرجعية، ثم يدمج هذه الحقائق مع حالة المحادثة قبل تشغيل القواعد.
-
-أمثلة مهمة:
-
-- `جاني عرض ب6500 بس ما وافقت عليه` يصبح عرضا تحت المراجعة مع `accepted=false`
-- `راتبي انخفض 500 ريال` يصبح فرق دخل `-500` وليس راتبا نهائيا بقيمة 500
-- `زاد راتبي 1000` يحسب الأثر على الراتب الحالي بدل استبداله بـ1000
-- `ليش الضمان ممكن يتأثر؟` يشرح أثر آخر سيناريو على الضمان، وليس سبب ظهور خدمة الضمان
-- `يعني أنا مؤهل أكيد؟` يرجع إلى آخر خدمة تمت مناقشتها ويجيب عن درجة الأهلية بدل إعادة قائمة الخدمات
-- `طيب أقدر أقدم عليه؟` يحل مرجع `عليه` من سياق المحادثة
-- `إذا انفصلت من الوظيفة هل الضمان يصير مناسب؟` يمثل حدث فقد الوظيفة وسؤال الضمان في نفس الإطار
-
-
-## فهم اللهجة والأرقام
-
-`src/nlu.js` مسؤول عن طبقة فهم حتمية قبل الذكاء الاصطناعي.
-
-أمثلة مدعومة:
-
-```text
-جاني عرض بستة ونص       -> 6500
-جاني عرض بـ٦ ونص        -> 6500
-جاني عرض ب6.5           -> 6500
-جاني عرض بثمانية ونص    -> 8500
-راتب الوظيفة 12 ألف     -> 12000
-راتب العرض 6500         -> 6500
-```
-
-الحالات المختصرة التي تحتمل أكثر من تفسير تستخدم Confirmation بدل الافتراض.
-
-## قاموس لغة قابل للتوسعة
-
-`data/language_glossary.json` يفصل لغة المستفيد عن المصطلحات الرسمية.
-
-أمثلة:
-
-```text
-حافز -> إعانة البحث عن عمل
-الضمان -> الضمان الاجتماعي المطور
-ما باشرت -> الوظيفة لم تبدأ فعليا
-بديلة عن وظيفتي -> الوظيفة الجديدة تستبدل الحالية
-```
-
-إضافة مرادف جديد لا تحتاج تعديل محرك القواعد.
-
-## منطق الخدمة
-
-قاعدة مهمة:
-
-```text
-غير مستفيد حاليا
-لا تعني
-لا يمكن التقديم
-ولا تعني
-غير مؤهل
-```
-
-صلة يتعامل مع أربع حالات منفصلة لكل خدمة:
-
-```text
-Current Enrollment
-Application Availability
-Eligibility Status
-Context Relevance
-```
-
-ويراعي ثلاثة أنواع للحقيقة:
-
-```text
-Current
-Reported
-What If
-```
-
-راجع `docs/LOGIC_MODEL.md`.
-
-## استرجاع الخدمات
-
-لا يتم إرسال 18 خدمة إلى النموذج في كل رسالة.
-
-- حدث وظيفي أو تغير دخل: صفر خدمات ترسل للـAI
-- سؤال خدمة غامض: عادة 1 إلى 3 خدمات مرشحة
-- اسم خدمة مباشر: غالبا يحسم محليا
-- المحرك الكامل يظل متاحا بعد فهم السؤال لتقييم النتائج حسب قواعده
-
-`src/retrieval.js` مسؤول عن الاسترجاع، وليس عن الأهلية.
-
-## الخدمات الموجودة
-
-قاعدة المعرفة الحالية تشمل 18 خدمة ومنتجا، منها:
-
-- الضمان الاجتماعي المطور
-- الاعتراض على إيقاف معاش الضمان
-- إدارة العقود
-- إنهاء العلاقة التعاقدية
-- التسوية الودية للخلافات العمالية
-- حاسبة مكافأة نهاية الخدمة
-- تقييم الإعاقة
-- الإعانة المالية للأشخاص ذوي الإعاقة
-- التسهيلات المرورية
-- توثيق عقود العمالة المنزلية
-- بطاقة امتياز كبار السن
-- إعانة البحث عن عمل
-- تمهير
-- دروب
-- دعم الشهادات المهنية
-- وصول
-- قرة
-- سبل
-
-التفاصيل والقواعد والمصادر داخل `data/services.json`.
-
-## حماية من التعليق
-
-`src/ai.js` يستخدم `AbortController` مع مهلة زمنية صريحة.
-
-كل رسالة تستخدم صفر أو طلب AI واحد فقط. لا يوجد طلب AI ثان لصياغة الرد.
-
-في استجابة `/api/chat` يوجد `routingMeta` للمراجعة التقنية:
-
-```json
-{
-  "aiCalls": 1,
-  "aiSucceeded": true,
-  "strategy": "refine-extract-retrieve-validate-rule",
-  "candidateServiceIds": [],
-  "aiCandidateServiceIds": [],
-  "refinement": {
-    "intent": "new_job",
-    "jobStage": "accepted",
-    "money": {
-      "value": 6500,
-      "needsConfirmation": false
-    }
-  }
-}
-```
-
-إذا كان السؤال واضحا محليا، `aiCalls` يساوي 0.
-
-## ثبات المحادثة أثناء القراءة
-
-الواجهة لا تعمل Auto Scroll عند وصول الرد.
-
-- نحفظ `scrollTop` قبل إضافة الرسالة
-- نعيد نفس الموضع بعد تحديث DOM
-- حقل الكتابة يستخدم `preventScroll`
-- `overflow-anchor` معطل داخل منطقة الرسائل
-
-بهذا المستخدم يقرر بنفسه متى ينزل لقراءة الرد.
-
-## الأثر المتوقع
-
-المنصة لا تدعي نسب نجاح غير مقاسة. قسم الأثر يحدد مؤشرات يمكن قياسها في PoC مثل:
-
-- وقت الوصول للخدمة المناسبة
-- الرحلات غير المناسبة قبل التقديم
-- إعادة إدخال البيانات الموجودة مسبقا
-- الخدمات التي اكتشفها المستفيد بدون معرفة اسمها
-- نسبة الاستفسارات التي اكتملت ذاتيا
-- وضوح أثر القرار قبل حدوثه
-
-## Benchmark
-
-`data/benchmarks.json` يحتوي مقارنة تفصيلية مع:
-
-- LifeSG في سنغافورة
-- الخدمات الحكومية الاستباقية في إستونيا
-- Mes Droits Sociaux في فرنسا
-- Tell Us Once في المملكة المتحدة
-- myGov User Audit في أستراليا
-
-## الاختبارات
-
-شغل:
-
-```powershell
-npm test
-```
-
-أو:
-
-```powershell
-npm run check
-```
-
-النسخة الحالية تحتوي 154 اختبارا. منها Gold Set من 100 رسالة واقعية تغطي فهم النية، النفي، المراحل الزمنية، الأرقام العامية، فرق الدخل، الإحالة إلى آخر خدمة، أهلية الخدمة، الوظائف والعقود والضمان والخلافات العمالية. تم تشغيل المجموعة كاملة على مسار HTTP المحلي ونجحت 100 من 100 حالة.
-
-## النشر على GitHub
-
-المشروع جاهز للرفع بدون `.env`.
-
-اقرأ:
-
-```text
-GITHUB_PUBLISH.md
-```
-
-`.env` متجاهل في `.gitignore` و`.env.example` فقط هو الذي يرفع.
-
-GitHub Pages وحده لا يشغل `server.js`. النسخة الحية تحتاج استضافة Node.js مع `GROQ_API_KEY` كمتغير بيئة على الخادم.
-
-## الملفات المهمة
-
-- `START_HERE.md`: أقصر طريق للتشغيل
-- `SETUP_AND_START.cmd`: إعداد المفتاح وتشغيل المشروع على Windows
-- `server.js`: API والتنسيق بين الفهم والاسترجاع والقواعد
-- `src/nlu.js`: الأرقام العامية والنفي والمراحل والحقائق الحتمية
-- `src/retrieval.js`: اختيار الخدمات المرشحة بشكل محدود
-- `src/ai.js`: فهم اللغة عبر Groq عند الحاجة فقط
-- `src/rules.js`: محرك القواعد
-- `src/knowledge.js`: تحميل قاعدة المعرفة والقاموس
-- `data/language_glossary.json`: لغة المستخدم والمرادفات
-- `data/services.json`: كتالوج الخدمات
-- `docs/CHAT_ENGINE.md`: تصميم محرك المحادثة والمراجع
-- `public/`: الواجهة
-- `tests/`: اختبارات المنطق والمعمارية
-
-## البيانات
-
-كل الشخصيات والبيانات داخل النموذج افتراضية. القواعد المعروضة مبنية على مصادر رسمية منشورة داخل كتالوج الخدمات وملاحظات المصادر. النموذج لا يمثل قرار أهلية رسمي أو تفسيرا قانونيا رسميا.
-`````
-
-## `render.yaml`
-
-`````text
-services:
-  - type: web
-    name: silah-govtech-prototype
-    runtime: node
-    buildCommand: ""
-    startCommand: npm start
-    healthCheckPath: /api/health
-    envVars:
-      - key: GROQ_API_KEY
-        sync: false
-      - key: GROQ_MODEL
-        value: openai/gpt-oss-120b
-      - key: PORT
-        value: 10000
-`````
-
-## `RUN_TESTS.cmd`
-
-`````text
-@echo off
-cd /d "%~dp0"
-call npm run check
-pause
-`````
-
-## `scripts/preflight.js`
-
-`````text
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const ignoredDirs = new Set(['.git', 'node_modules', 'coverage']);
-const ignoredFiles = new Set(['.env']);
-const textExtensions = new Set(['.js', '.json', '.html', '.css', '.md', '.txt', '.yml', '.yaml', '.example', '.gitignore', '.cmd']);
-const problems = [];
-
-function isTextFile(file) {
-  const name = path.basename(file);
-  return textExtensions.has(path.extname(file).toLowerCase()) || ['package.json', '.gitignore', '.env.example'].includes(name);
-}
-
-function walk(dir) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isDirectory() && ignoredDirs.has(entry.name)) continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(full);
-    else if (!ignoredFiles.has(entry.name) && isTextFile(full)) inspect(full);
-  }
-}
-
-function inspect(file) {
-  const relative = path.relative(root, file);
-  const text = fs.readFileSync(file, 'utf8');
-
-  if (text.includes('\u2014')) problems.push(`${relative}: contains banned long dash U+2014`);
-  if (text.includes('\u2013')) problems.push(`${relative}: contains banned en dash U+2013`);
-
-  const groqKeys = text.match(/gsk_[A-Za-z0-9_-]{20,}/g) || [];
-  for (const key of groqKeys) {
-    if (!/ضع|YOUR|your|example/i.test(key)) problems.push(`${relative}: possible Groq key leak starting with ${key.slice(0, 9)}...`);
-  }
-
-  const openAiKeys = text.match(/sk-[A-Za-z0-9_-]{20,}/g) || [];
-  for (const key of openAiKeys) problems.push(`${relative}: possible secret key leak starting with ${key.slice(0, 7)}...`);
-}
-
-walk(root);
-
-const gitignorePath = path.join(root, '.gitignore');
-if (!fs.existsSync(gitignorePath)) {
-  problems.push('.gitignore is missing');
-} else {
-  const gitignore = fs.readFileSync(gitignorePath, 'utf8');
-  if (!gitignore.split(/\r?\n/).some(line => line.trim() === '.env')) problems.push('.gitignore does not ignore .env');
-}
-
-const envExamplePath = path.join(root, '.env.example');
-if (!fs.existsSync(envExamplePath)) problems.push('.env.example is missing');
-
-if (problems.length) {
-  console.error('\nPreflight failed:\n');
-  problems.forEach(problem => console.error(`  - ${problem}`));
-  process.exit(1);
-}
-
-console.log('Preflight passed: no committed .env target, no obvious API key leak, and no banned dash characters found.');
-`````
-
-## `SECURITY.md`
-
-`````text
-# Security notes
-
-- لا تضع `GROQ_API_KEY` داخل `public/` أو أي JavaScript يصل إلى المتصفح
-- المفتاح المحلي يجب أن يبقى في `.env`
-- `.env` متجاهل عبر `.gitignore`
-- `.env.example` يحتوي أسماء المتغيرات فقط ولا يحتوي سرا حقيقيا
-- في الاستضافة استخدم Environment Variables في لوحة مزود الاستضافة
-- إذا ظهر مفتاح حقيقي في GitHub في أي وقت، ألغ المفتاح وأنشئ غيره
-- بيانات الشخصيات في هذا النموذج افتراضية ولا يجب استبدالها ببيانات مستفيدين حقيقية في نسخة عامة
-`````
-
-## `server.js`
-
-`````text
-import http from 'node:http';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { benchmarks, personaById, personas, services, serviceById } from './src/knowledge.js';
-import { evaluateIntent, currentServices, opportunities, changesFor } from './src/rules.js';
-import { fallbackReply, fallbackRoute, shouldUseLocalRoute, understandMessage } from './src/ai.js';
-import { extractDeterministicFacts } from './src/nlu.js';
-import { retrieveRelevantServices, strongCandidateIds } from './src/retrieval.js';
-
-const root = path.dirname(fileURLToPath(import.meta.url));
-loadEnv(path.join(root, '.env'));
-const port = Number(process.env.PORT || 3000);
-const publicDir = path.join(root, 'public');
-
-function loadEnv(file) {
-  if (!fs.existsSync(file)) return;
-  const text = fs.readFileSync(file, 'utf8');
-  for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line || line.startsWith('#')) continue;
-    const index = line.indexOf('=');
-    if (index < 1) continue;
-    const key = line.slice(0, index).trim();
-    const value = line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '');
-    if (!(key in process.env)) process.env[key] = value;
-  }
-}
-
-function hasAiKey() {
-  const key = process.env.GROQ_API_KEY || '';
-  return Boolean(key && !key.includes('ضع_المفتاح'));
-}
-
-function json(res, status, value) {
-  const body = JSON.stringify(value);
-  res.writeHead(status, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Content-Length': Buffer.byteLength(body),
-    'Cache-Control': 'no-store'
-  });
-  res.end(body);
-}
-
-function text(res, status, value, contentType = 'text/plain; charset=utf-8') {
-  res.writeHead(status, {
-    'Content-Type': contentType,
-    'Content-Length': Buffer.byteLength(value)
-  });
-  res.end(value);
-}
-
-async function readBody(req) {
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of req) {
-    size += chunk.length;
-    if (size > 1_000_000) throw new Error('REQUEST_TOO_LARGE');
-    chunks.push(chunk);
-  }
-  if (!chunks.length) return {};
-  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
-}
-
-function publicService(service) {
-  return {
-    id: service.id,
-    name: service.name,
-    provider: service.provider || 'وزارة الموارد البشرية والتنمية الاجتماعية',
-    sector: service.sector,
-    summary: service.summary,
-    channel: service.channel,
-    duration: service.duration,
-    sourceUrl: service.sourceUrl,
-    regulationUrl: service.regulationUrl || null,
-    checkedAt: service.checkedAt,
-    ruleFacts: service.ruleFacts,
-    requiredData: service.requiredData,
-    triggerSignals: service.triggerSignals || [],
-    audience: service.audience || [],
-    decisionPolicy: service.decisionPolicy
-  };
-}
-
-function publicProfile(profile) {
-  return { ...profile };
-}
-
-function mergeScenario(previous = {}, route = {}) {
-  const next = { ...previous };
-  const unconfirmedField = route.pendingConfirmation?.field || null;
-
-  const mergeValue = (key, value, emptyValues = [null, undefined, '', 'unknown']) => {
-    if (!emptyValues.includes(value)) next[key] = value;
-  };
-
-  mergeValue('mode', route.mode, [null, undefined, '', 'knowledge']);
-  if (unconfirmedField !== 'income') mergeValue('income', route.income);
-  if (unconfirmedField !== 'salary') mergeValue('salary', route.salary);
-  mergeValue('delta', route.delta);
-  mergeValue('jobStage', route.jobStage);
-  if (route.accepted !== null && route.accepted !== undefined) next.accepted = route.accepted;
-  if (route.started !== null && route.started !== undefined) next.started = route.started;
-  if (route.replacesCurrentJob !== null && route.replacesCurrentJob !== undefined) next.replacesCurrentJob = route.replacesCurrentJob;
-  mergeValue('endStage', route.endStage);
-  if (route.ended !== null && route.ended !== undefined) next.ended = route.ended;
-  mergeValue('endReason', route.endReason);
-  mergeValue('incomeSource', route.incomeSource);
-  mergeValue('laborDisputeTopic', route.laborDisputeTopic);
-
-  if (route.profileOverrides && typeof route.profileOverrides === 'object') {
-    next.profileOverrides = { ...(previous.profileOverrides || {}), ...route.profileOverrides };
-  }
-
-  if (Array.isArray(route.targetServiceIds) && route.targetServiceIds.length) {
-    next.targetServiceIds = [...new Set(route.targetServiceIds)];
-  }
-
-  if (route.pendingConfirmation) next.pendingConfirmation = route.pendingConfirmation;
-  if (route.clearPendingConfirmation) delete next.pendingConfirmation;
-
-  next.slotMeta = { ...(previous.slotMeta || {}) };
-  if (route.refinement?.money && !route.pendingConfirmation) {
-    const field = route.intent === 'new_job' ? 'salary' : ['income_change', 'service_question'].includes(route.intent) ? 'income' : null;
-    if (field && route[field] != null) {
-      next.slotMeta[field] = {
-        source: 'user_message',
-        confidence: route.refinement.money.confidence,
-        interpretation: route.refinement.money.interpretation,
-        raw: route.refinement.money.raw || ''
-      };
-    }
-  }
-
-  return next;
-}
-
-function normalizeIntent(route) {
-  return route.intent || 'general';
-}
-
-function ensureScenario(route, previous = {}) {
-  const scenario = mergeScenario(previous, route);
-  scenario.mode = route.mode || scenario.mode || 'knowledge';
-  scenario.targetServiceIds = scenario.targetServiceIds || route.targetServiceIds || [];
-
-  if (scenario.income == null && route.salary != null && route.intent === 'income_change') scenario.income = route.salary;
-  if (scenario.salary == null && route.income != null && route.intent === 'new_job') scenario.salary = route.income;
-  if (scenario.replacesCurrentJob === undefined) scenario.replacesCurrentJob = null;
-  if (!scenario.jobStage) scenario.jobStage = 'unknown';
-  if (!scenario.endStage) scenario.endStage = 'unknown';
-  if (!scenario.endReason) scenario.endReason = 'unknown';
-  if (!scenario.profileOverrides) scenario.profileOverrides = {};
-  if (scenario.delta === undefined) scenario.delta = null;
-  if (scenario.accepted === undefined) scenario.accepted = null;
-  if (scenario.started === undefined) scenario.started = null;
-  if (scenario.ended === undefined) scenario.ended = null;
-
-  return scenario;
-}
-
-function enrichRouteFromHint(route, body) {
-  if (!body.intentHint) return route;
-  return { ...route, intent: body.intentHint, mode: body.modeHint || route.mode };
-}
-
-
-function simulationView(profile, intent, scenario, evaluation) {
-  if (!['income_change', 'new_job', 'employment_end'].includes(intent)) return null;
-
-  const current = [];
-  const hypothetical = [];
-  let title = 'معاينة أثر السيناريو';
-  let status = scenario.mode === 'reported' ? 'تغيير أبلغ عنه المستفيد' : 'نسخة افتراضية فقط';
-
-  if (intent === 'income_change') {
-    const nextIncome = Number(scenario.income);
-    if (!Number.isFinite(nextIncome)) return null;
-    title = 'توأم الحالة للدخل';
-    current.push(`الدخل الحالي ${Number(profile.totalMonthlyIncome ?? profile.salary ?? 0)} ريال`);
-    hypothetical.push(`الدخل في السيناريو ${nextIncome} ريال`);
-  }
-
-  if (intent === 'new_job') {
-    const salary = Number(scenario.salary);
-    title = 'توأم الحالة للوظيفة الجديدة';
-    current.push(profile.activeContract ? 'عقد حالي فعال' : 'لا يوجد عقد حالي فعال');
-    current.push(`الدخل الحالي ${Number(profile.totalMonthlyIncome ?? profile.salary ?? 0)} ريال`);
-    if (Number.isFinite(salary)) hypothetical.push(`راتب الوظيفة الجديدة ${salary} ريال`);
-    const stages = {
-      reviewing: 'العرض تحت المراجعة',
-      accepted: 'وافقت من جهتك ولم يبدأ الدخل',
-      documented: 'العقد موثق في السيناريو ولم يبدأ الدخل',
-      started: 'بدأ العمل والدخل في السيناريو',
-      unknown: 'مرحلة الوظيفة تحتاج تحديد'
-    };
-    hypothetical.push(stages[scenario.jobStage || 'unknown']);
-    if (scenario.replacesCurrentJob === true) hypothetical.push('الوظيفة الجديدة بديلة عن الحالية');
-    if (scenario.replacesCurrentJob === false) hypothetical.push('العقد الحالي سيبقى قائما');
-  }
-
-  if (intent === 'employment_end') {
-    title = 'توأم الحالة للعلاقة الوظيفية';
-    current.push(profile.activeContract ? 'العقد الحالي فعال' : 'لا يوجد عقد فعال');
-    hypothetical.push(scenario.endStage === 'ended' ? 'العلاقة انتهت في السيناريو' : 'العلاقة ستنتهي ولم تنته بعد');
-    const reasons = {
-      fixed_expiry: 'انتهاء مدة العقد',
-      resignation: 'استقالة',
-      employer_termination: 'إنهاء من صاحب العمل',
-      business_closed: 'انتهاء نشاط المنشأة',
-      mutual: 'اتفاق متبادل',
-      other: 'سبب آخر',
-      unknown: 'السبب يحتاج تحديد'
-    };
-    hypothetical.push(reasons[scenario.endReason || 'unknown']);
-  }
-
-  const affected = [...new Set((evaluation.results || [])
-    .map(item => item.serviceId)
-    .filter(Boolean)
-    .map(id => serviceById[id]?.name)
-    .filter(Boolean))];
-
-  return {
-    active: true,
-    title,
-    status,
-    current,
-    hypothetical,
-    affected,
-    note: 'هذه المعاينة منفصلة عن بيانات المستفيد الحالية ولا تحدث أي سجل رسمي.'
-  };
-}
-
-async function handleChat(req, res) {
-  const body = await readBody(req);
-  const message = String(body.message || '').trim();
-  const profile = personaById[body.profileId] || personaById.khalid;
-  const rawHistory = Array.isArray(body.history) ? body.history.slice(-8) : [];
-  const history = rawHistory.length && rawHistory[rawHistory.length - 1]?.role === 'user' && String(rawHistory[rawHistory.length - 1]?.text || '').trim() === message
-    ? rawHistory.slice(0, -1)
-    : rawHistory;
-  const previousState = body.scenarioState && typeof body.scenarioState === 'object' ? body.scenarioState : {};
-
-  if (!message) return json(res, 400, { error: 'اكتب رسالة أولا' });
-
-  const deterministicFacts = extractDeterministicFacts(message, previousState);
-  const localRoute = fallbackRoute(message, previousState);
-  const profilePriorityIds = [...new Set([
-    ...currentServices(profile),
-    ...opportunities(profile)
-  ].map(item => item.serviceId).filter(Boolean))];
-
-  // الاسترجاع محلي ورخيص. نحتفظ بحد أعلى صغير، لكن لا نرسل المرشحات للـAI
-  // في أحداث مثل وظيفة جديدة أو تغير دخل لأن النموذج يحتاج فهم اللغة فقط.
-  const localCandidateLimit = localRoute.intent === 'general' ? 3 : 2;
-  const candidates = retrieveRelevantServices({
-    message,
-    profile,
-    previousState,
-    priorityIds: profilePriorityIds,
-    limit: localCandidateLimit
-  });
-
-  const aiCandidates = [];
-
-  let route = localRoute;
-  let aiMode = 'local';
-  let aiAttempted = false;
-  let aiSucceeded = false;
-
-  if (hasAiKey() && !shouldUseLocalRoute(localRoute, previousState)) {
-    aiAttempted = true;
-    try {
-      route = await understandMessage({
-        message,
-        profile,
-        history,
-        scenarioState: previousState,
-        deterministicFacts
-      });
-      aiMode = 'ai';
-      aiSucceeded = true;
-
-    } catch (error) {
-      console.error('[router]', error.code || error.message);
-      route = localRoute;
-      aiMode = error.code === 'GROQ_TIMEOUT'
-        ? 'fallback_timeout'
-        : error.code === 'GROQ_RATE_LIMIT'
-          ? 'fallback_rate_limit'
-          : 'fallback';
-    }
-  }
-
-  if (!(route.targetServiceIds || []).length) {
-    const serviceAware = new Set(['service_question', 'eligibility_confirmation', 'service_application_question', 'service_status_question', 'explain_result', 'explain_effect', 'benefit_amount_question', 'social_security_impact']);
-    const strongIds = strongCandidateIds(candidates);
-    if (strongIds.length && (route.intent === 'general' || serviceAware.has(route.intent))) {
-      route = {
-        ...route,
-        intent: route.intent === 'general' ? 'service_question' : route.intent,
-        mode: route.mode || 'knowledge',
-        targetServiceIds: strongIds,
-        confidence: Math.max(Number(route.confidence || 0), 0.78)
-      };
-      if (aiMode === 'ai') aiMode = 'ai_retrieval';
-      else if (aiMode === 'local') aiMode = 'local_retrieval';
-    }
-  }
-
-  route = enrichRouteFromHint(route, body);
-  let intent = normalizeIntent(route);
-  if (intent === 'general' && Array.isArray(route.targetServiceIds) && route.targetServiceIds.length) intent = 'service_question';
-  const scenario = ensureScenario(route, previousState);
-  scenario.intent = intent;
-
-  const routingMeta = {
-    aiCalls: aiAttempted ? 1 : 0,
-    aiSucceeded,
-    strategy: 'semantic-frame-state-resolve-rule',
-    candidateServiceIds: candidates.map(item => item.id),
-    candidateCount: candidates.length,
-    aiCandidateServiceIds: aiCandidates.map(item => item.id),
-    aiCandidateCount: aiCandidates.length,
-    refinement: {
-      intent: deterministicFacts.intent,
-      jobStage: deterministicFacts.jobStage,
-      money: deterministicFacts.money
-        ? {
-            value: deterministicFacts.money.value,
-            confidence: deterministicFacts.money.confidence,
-            needsConfirmation: deterministicFacts.money.needsConfirmation,
-            interpretation: deterministicFacts.money.interpretation
-          }
-        : null
-    }
-  };
-
-  const referentialIntents = new Set(['eligibility_confirmation', 'service_application_question', 'service_status_question', 'explain_result', 'explain_effect']);
-  if (referentialIntents.has(intent) && !(route.targetServiceIds || []).length) {
-    const previousServices = [...new Map((previousState.lastResults || []).filter(item => item?.serviceId).map(item => [item.serviceId, item])).values()];
-    if (previousServices.length > 1) {
-      return json(res, 200, {
-        reply: 'تقصد أي خدمة من النتائج اللي قبل؟',
-        quickReplies: previousServices.slice(0, 4).map(item => item.title || serviceById[item.serviceId]?.name || item.serviceId),
-        results: [], changes: [], route: { ...route, intent }, scenarioState: scenario,
-        aiMode, aiEnabled: hasAiKey(), routingMeta, simulation: null
-      });
-    }
-  }
-
-  if (route.requiresClarification === 'income_source') {
-    return json(res, 200, {
-      reply: 'هذا الدخل من راتب وظيفة، عمل حر، أو مصدر آخر؟',
-      quickReplies: ['راتب من وظيفة', 'دخل من عمل حر', 'مصدر آخر'],
-      results: [], changes: [], route: { ...route, intent }, scenarioState: scenario,
-      aiMode, aiEnabled: hasAiKey(), routingMeta, simulation: null
-    });
-  }
-
-  if (route.requiresClarification === 'current_offer_status') {
-    return json(res, 200, {
-      reply: 'بعد ما غيرت رأيك، وش وضع العرض الآن؟ ما زلت موافق، أو تراجعت عنه؟',
-      quickReplies: ['ما زلت موافق', 'تراجعت عنه'],
-      results: [], changes: [], route: { ...route, intent }, scenarioState: scenario,
-      aiMode, aiEnabled: hasAiKey(), routingMeta, simulation: null
-    });
-  }
-
-  if (route.pendingConfirmation) {
-    return json(res, 200, {
-      reply: route.pendingConfirmation.question,
-      quickReplies: route.pendingConfirmation.quickReplies || [],
-      results: [],
-      changes: [],
-      route: { ...route, intent },
-      scenarioState: scenario,
-      aiMode,
-      aiEnabled: hasAiKey(),
-      routingMeta,
-      simulation: simulationView(profile, intent, scenario, { results: [] })
-    });
-  }
-
-  if (route.confirmationRejected) {
-    return json(res, 200, {
-      reply: 'تمام. اكتب المبلغ كامل مثل 6500 عشان ما أفترض رقم من عندي.',
-      quickReplies: [],
-      results: [],
-      changes: [],
-      route: { ...route, intent },
-      scenarioState: scenario,
-      aiMode,
-      aiEnabled: hasAiKey(),
-      routingMeta,
-      simulation: simulationView(profile, intent, scenario, { results: [] })
-    });
-  }
-
-  let evaluation;
-  if (['explain_result', 'explain_effect'].includes(intent) && Array.isArray(previousState.lastResults) && previousState.lastResults.length) {
-    evaluation = { needsClarification: false, results: previousState.lastResults, changes: previousState.lastChanges || [] };
-  } else {
-    evaluation = evaluateIntent(profile, intent, scenario);
-  }
-
-  if (evaluation.needsClarification) {
-    return json(res, 200, {
-      reply: evaluation.question,
-      quickReplies: evaluation.quickReplies || [],
-      results: [],
-      changes: [],
-      route: { ...route, intent },
-      scenarioState: scenario,
-      aiMode,
-      aiEnabled: hasAiKey(),
-      routingMeta,
-      simulation: simulationView(profile, intent, scenario, evaluation)
-    });
-  }
-
-  if (intent === 'general' && !(route.targetServiceIds || []).length) {
-    return json(res, 200, {
-      reply: 'ما لقيت ارتباطا كافيا في قاعدة صلة الحالية عشان أعطيك جواب بثقة. اشرح الحالة بتفصيل بسيط أكثر، أو اذكر اسم الخدمة أو التغيير اللي تقصده.',
-      quickReplies: ['وش الخدمات اللي تخصني؟', 'وش الخدمات اللي أقدر أستفيد منها؟', 'جاني عرض وظيفي وش بيتغير؟'],
-      results: [],
-      changes: [],
-      route: { ...route, intent },
-      scenarioState: scenario,
-      aiMode,
-      aiEnabled: hasAiKey(),
-      routingMeta,
-      simulation: null
-    });
-  }
-
-  const reply = fallbackReply({ route: { ...route, intent }, evaluation, profile, previousState });
-
-  scenario.lastResults = evaluation.results || [];
-  scenario.lastChanges = evaluation.changes || [];
-  const serviceResults = (evaluation.results || []).filter(item => item?.serviceId);
-  const primaryResult = serviceResults[0] || null;
-  const routedIds = (route.targetServiceIds || []).filter(id => serviceById[id]);
-  if (routedIds.length === 1) scenario.lastServiceId = routedIds[0];
-  else if (serviceResults.length === 1) scenario.lastServiceId = serviceResults[0].serviceId;
-  else delete scenario.lastServiceId;
-  if (primaryResult && serviceResults.length === 1) scenario.lastClaim = { serviceId: primaryResult.serviceId || null, title: primaryResult.title || '', body: primaryResult.body || '', why: primaryResult.why || '' };
-  else if (serviceResults.length !== 1) delete scenario.lastClaim;
-
-  const nextReplies = intent === 'current_services'
-    ? ['وش الخدمات اللي أقدر أستفيد منها؟', 'وش تغير في بياناتي؟', 'لو راتبي تغير وش يصير؟']
-    : intent === 'eligible_services'
-      ? ['ليش ظهرت لي هذي الخدمات؟', 'وش الخدمات اللي تخصني حاليا؟', 'لو تغير دخلي وش بيتغير؟']
-      : [];
-
-  return json(res, 200, {
-    reply,
-    quickReplies: nextReplies,
-    results: evaluation.results || [],
-    changes: evaluation.changes || [],
-    route: { ...route, intent },
-    scenarioState: scenario,
-    aiMode,
-    aiEnabled: hasAiKey(),
-    routingMeta,
-    simulation: simulationView(profile, intent, scenario, evaluation)
-  });
-}
-
-function mime(file) {
-  const ext = path.extname(file).toLowerCase();
-  return {
-    '.html': 'text/html; charset=utf-8',
-    '.css': 'text/css; charset=utf-8',
-    '.js': 'text/javascript; charset=utf-8',
-    '.json': 'application/json; charset=utf-8',
-    '.svg': 'image/svg+xml',
-    '.png': 'image/png',
-    '.ico': 'image/x-icon'
-  }[ext] || 'application/octet-stream';
-}
-
-function serveStatic(req, res, pathname) {
-  let relative = pathname === '/' ? '/index.html' : pathname;
-  relative = decodeURIComponent(relative);
-  const full = path.normalize(path.join(publicDir, relative));
-  if (!full.startsWith(publicDir)) return text(res, 403, 'Forbidden');
-  if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) return text(res, 404, 'Not found');
-  const content = fs.readFileSync(full);
-  res.writeHead(200, { 'Content-Type': mime(full), 'Content-Length': content.length });
-  res.end(content);
-}
-
-const server = http.createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-    const pathname = url.pathname;
-
-    if (req.method === 'GET' && pathname === '/api/health') {
-      return json(res, 200, {
-        ok: true,
-        aiEnabled: hasAiKey(),
-        provider: 'Groq',
-        model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
-        services: services.length,
-        routing: 'semantic-frame-state-resolve-rule',
-        groqTimeoutMs: Number(process.env.GROQ_TIMEOUT_MS || 8500)
-      });
-    }
-
-    if (req.method === 'GET' && pathname === '/api/bootstrap') {
-      const profileId = url.searchParams.get('profile') || 'khalid';
-      const profile = personaById[profileId] || personaById.khalid;
-      return json(res, 200, {
-        aiEnabled: hasAiKey(),
-        provider: 'Groq',
-        model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
-        profiles: personas.map(publicProfile),
-        profile: publicProfile(profile),
-        currentServices: currentServices(profile),
-        opportunities: opportunities(profile),
-        changes: changesFor(profile),
-        services: services.map(publicService),
-        benchmarks
-      });
-    }
-
-    if (req.method === 'GET' && pathname.startsWith('/api/profile/')) {
-      const id = pathname.split('/').pop();
-      const profile = personaById[id];
-      if (!profile) return json(res, 404, { error: 'PROFILE_NOT_FOUND' });
-      return json(res, 200, {
-        profile: publicProfile(profile),
-        currentServices: currentServices(profile),
-        opportunities: opportunities(profile),
-        changes: changesFor(profile)
-      });
-    }
-
-    if (req.method === 'GET' && pathname === '/api/services') {
-      return json(res, 200, { services: services.map(publicService) });
-    }
-
-    if (req.method === 'GET' && pathname.startsWith('/api/services/')) {
-      const id = pathname.split('/').pop();
-      const service = serviceById[id];
-      if (!service) return json(res, 404, { error: 'SERVICE_NOT_FOUND' });
-      return json(res, 200, { service: publicService(service) });
-    }
-
-    if (req.method === 'POST' && pathname === '/api/chat') {
-      return await handleChat(req, res);
-    }
-
-    if (req.method === 'GET') return serveStatic(req, res, pathname);
-    return text(res, 405, 'Method not allowed');
-  } catch (error) {
-    console.error(error);
-    return json(res, 500, { error: 'حدث خطأ غير متوقع في الخادم' });
-  }
-});
-
-server.listen(port, () => {
-  console.log(`Silah running on http://localhost:${port}`);
-  console.log(`AI mode: ${hasAiKey() ? 'enabled' : 'fallback demo'}`);
-});
-`````
-
-## `SETUP_AND_START.cmd`
-
-`````text
-@echo off
-setlocal EnableExtensions EnableDelayedExpansion
-cd /d "%~dp0"
-
-echo.
-echo ================================
-echo       Silah local setup
-echo ================================
-echo.
-
-where node >nul 2>nul
-if errorlevel 1 (
-  echo Node.js is not installed or not available in PATH.
-  echo Install Node.js 20 or newer, then run this file again.
-  pause
-  exit /b 1
-)
-
-if not exist .env (
-  echo Paste your Groq API key below. It will be saved only in local .env.
-  echo The .env file is ignored by Git and should not be uploaded to GitHub.
-  echo.
-  set /p GROQKEY=Groq API key: 
-  if not defined GROQKEY (
-    echo No key entered. Setup stopped.
-    pause
-    exit /b 1
-  )
-  > .env echo GROQ_API_KEY=!GROQKEY!
-  >> .env echo GROQ_MODEL=openai/gpt-oss-20b
-  >> .env echo GROQ_TIMEOUT_MS=8500
-  >> .env echo PORT=3000
-  echo.
-  echo Local .env created.
-) else (
-  echo Existing local .env found. It will be used as is.
-)
-
-echo.
-echo Running project checks...
-call npm run check
-if errorlevel 1 (
-  echo.
-  echo Checks failed. Review the messages above before starting.
-  pause
-  exit /b 1
-)
-
-echo.
-echo Starting Silah...
-echo Open http://localhost:3000 after the server starts.
-echo Press Ctrl+C to stop the server.
-echo.
-call npm start
-`````
-
-## `SOURCE_NOTES.md`
-
-`````text
-# ملاحظات المصادر
-
-تاريخ المراجعة: 2026-10-03
-
-هذا الملف يوثق المصادر العامة المستخدمة لبناء قاعدة صلة وBenchmark. النتائج داخل النموذج لا تمثل قرار أهلية رسمي.
-
-## وزارة الموارد البشرية والتنمية الاجتماعية
-
-دليل الخدمات:
-https://www.hrsd.gov.sa/ministry-services
-
-الموقع الرسمي وإحصاءات الواجهة المستخدمة في قسم الأثر:
-https://www.hrsd.gov.sa/
-
-في تاريخ المراجعة كان الموقع يعرض 855 خدمة و36,687,106 معاملة منجزة. تستخدم هذه الأرقام كسياق للحجم فقط وليست قياسا لأثر صلة.
-
-تقارير صوت المستفيد:
-https://www.hrsd.gov.sa/en/ministry/e-participation/beneficiary-voice-reports
-
-قسم الأثر يستخدم أرقام تقرير الربع الثاني 2026 المحفوظة في مادة الـPoC كنقطة Baseline، ثم يعرض حساسية 3% و5% و10% على المكالمات الواردة. الحسبة افتراضية وموسومة بوضوح على أنها ليست Forecast ولا وعدا تشغيليا. افتراض ساعات العمل في النموذج هو 6 دقائق لكل مكالمة لأغراض توضيح حجم الفرصة فقط.
-
-### الضمان الاجتماعي المطور
-https://www.hrsd.gov.sa/ministry-services/services/%D9%86%D8%B8%D8%A7%D9%85-%D8%A7%D9%84%D8%B6%D9%85%D8%A7%D9%86-%D8%A7%D9%84%D8%A7%D8%AC%D8%AA%D9%85%D8%A7%D8%B9%D9%8A-%D8%A7%D9%84%D9%85%D8%B7%D9%88%D8%B1
-
-مرجع النظام واللائحة:
-https://www.hrsd.gov.sa/knowledge-centre/decisions-and-regulations/regulation-and-procedures/841045
-
-قاعدة تصميم صلة:
-عدم كون الشخص مستفيدا حاليا لا يعني عدم إمكانية التقديم ولا يعني عدم الأهلية. الأهلية تعتمد على الدخل المحتسب وبقية الشروط والبيانات المطلوبة.
-
-### خدمات أخرى من الوزارة
-
-- اعتراض على إيقاف معاش الضمان
-- إدارة العقود
-- إنهاء العلاقة التعاقدية
-- التسوية الودية للخلافات العمالية
-- حاسبة مكافأة نهاية الخدمة
-- تقييم الإعاقة
-- الإعانة المالية للأشخاص ذوي الإعاقة
-- الشهادات الرقمية للتسهيلات المرورية
-- التوثيق الإلكتروني لعقود العمالة المنزلية
-- بطاقة امتياز لكبار السن
-
-كل رابط تفصيلي محفوظ داخل `data/services.json` مع تاريخ المراجعة والقواعد التي نمذجناها.
-
-## صندوق تنمية الموارد البشرية
-
-### إعانة البحث عن عمل
-https://www.hrdf.org.sa/products-and-services/programs/individuals/other/job-search-subsidy/
-
-ملاحظات نمذجت في صلة:
-
-- سعودي
-- مقيم بشكل دائم
-- قادر وجاد في البحث عن عمل
-- العمر 20 إلى 40 سنة
-- غير موظف
-- لا معاش تقاعدي
-- لا تعويض ضد التعطل
-- لا معاش ضمان اجتماعي
-- ليس طالبا أو متدربا
-- لا نشاط تجاري
-- الدخل والثروة وسجل الاستفادة والتواريخ عناصر مطلوبة للتحقق
-
-### تمهير
-https://www.hrdf.org.sa/products-and-services/programs/individuals/training/graduate-development/
-
-### دروب
-https://www.hrdf.org.sa/products-and-services/programs/individuals/training/online-training-doroob-individuals/
-
-### دعم الشهادات المهنية
-https://www.hrdf.org.sa/products-and-services/programs/individuals/training/professional-certificates/
-
-### وصول
-https://www.hrdf.org.sa/products-and-services/programs/individuals/enable/wusool/
-
-### قرة
-https://www.hrdf.org.sa/products-and-services/programs/individuals/enable/childcare-support-for-working-women/
-
-### سبل
-https://www.hrdf.org.sa/products-and-services/programs/individuals/guidance/career-guidance-sobol/
-
-## Benchmark
-
-### سنغافورة: LifeSG
-
-GovTech LifeSG:
-https://www.tech.gov.sg/products-and-services/for-citizens/digital-services/lifesg/
-
-A Decade of Impact:
-https://www.tech.gov.sg/a-decade-of-impact/
-
-Milestone Tracker:
-https://www.life.gov.sg/preparing-our-nations-sons
-
-المعلومات المستخدمة في الواجهة تشمل قرابة مليوني مستخدم، أكثر من 130 خدمة ومزية، وتحسن زمن تسجيل الولادة من نحو ساعة إلى 15 دقيقة في المادة المنشورة، إضافة إلى التوصيات والمتابعة وإعادة استخدام البيانات.
-
-### إستونيا: Proactive Government Services
-
-https://ria.ee/en/state-information-system/personal-services/proactive-government-services
-
-استخدمنا مفهوم أحداث الحياة، Service Owner، عرض الخطوات المنجزة والمتبقية، وبعض حالات Consent، وتوزيع أكثر من 478 ألف زيارة في 2025 حسب أنواع الأحداث المنشورة.
-
-### فرنسا: Mes Droits Sociaux
-
-https://www.mesdroitssociaux.gouv.fr/votre-simulateur/
-
-استخدمنا مبدأ محاكاة 58 مساعدة في جلسة واحدة، وإعادة استخدام المعلومات المسبقة التعبئة عند الدخول. البوابة تعرض الحقوق الحالية والمحاكيات كمسارين منفصلين. في صلة استلهمنا هذا الفصل وطبقناه بشكل أوضح كـ Digital Twin مستقل لا يكتب السيناريو على الحالة الحالية. مصطلح Digital Twin وتطبيق الفصل بهذه الصورة هو قرار تصميمي في صلة وليس اسما تستخدمه البوابة الفرنسية.
-
-### المملكة المتحدة: Tell Us Once
-
-مسح 2013:
-https://www.gov.uk/government/news/award-winning-government-service-achieves-98-satisfaction-rate-amongst-customers
-
-تحليل المسح:
-https://www.gov.uk/government/publications/tell-us-once-customer-service-survey-analysis
-
-المؤشرات المعروضة تاريخية وموسومة بذلك داخل المنصة.
-
-### أستراليا: myGov User Audit
-
-https://my.gov.au/content/dam/mygov/documents/audit/mygov-useraudit-jan2023-volume2.pdf
-
-التجربة مستخدمة كدرس تحذيري. من الأرقام المستخدمة في التقرير: 7 من 15 خدمة عضو استخدمت Tell Us Once في يونيو 2022، و34% من تحديثات التفاصيل الشخصية قبلت مباشرة في يناير 2022، و38% احتاجت تدخلا إضافيا من الموظفين. الدرس لصلة هو أن Data Mapping وتعريف الحقول وConsent وحالة التنفيذ لا تقل أهمية عن الواجهة. صفحة التدقيق الحالية توضح كذلك أن الحكومة وافقت أو وافقت من حيث المبدأ على 9 من 10 توصيات التقرير.
-`````
-
-## `src/ai.js`
-
-`````text
-import { serviceById } from './knowledge.js';
-import {
-  applyDeterministicFacts,
-  extractDeterministicFacts,
-  isAffirmative,
-  isNegative,
-  normalizeArabic,
-  referencedServiceId
-} from './nlu.js';
-
-const endpoint = 'https://api.groq.com/openai/v1/responses';
-
-function env(name, fallback = '') {
-  return process.env[name] || fallback;
-}
-
-function outputText(data) {
-  const chunks = [];
-  for (const item of data.output || []) {
-    if (item.type !== 'message') continue;
-    for (const content of item.content || []) {
-      if (content.type === 'output_text' && typeof content.text === 'string') chunks.push(content.text);
-    }
-  }
-  return chunks.join('\n').trim();
-}
-
-function groqTimeoutMs() {
-  const value = Number(env('GROQ_TIMEOUT_MS', '8500'));
-  if (!Number.isFinite(value)) return 8500;
-  return Math.max(3000, Math.min(value, 15000));
-}
-
-async function callGroq(payload) {
-  const apiKey = env('GROQ_API_KEY');
-  if (!apiKey || apiKey.includes('ضع_المفتاح')) {
-    const error = new Error('GROQ_API_KEY_MISSING');
-    error.code = 'GROQ_API_KEY_MISSING';
-    throw error;
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), groqTimeoutMs());
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ store: false, ...payload }),
-      signal: controller.signal
-    });
-    if (response.ok) return response.json();
-    const body = await response.text();
-    const error = new Error(`GROQ_${response.status}: ${body.slice(0, 500)}`);
-    error.status = response.status;
-    error.code = response.status === 429 ? 'GROQ_RATE_LIMIT' : 'GROQ_HTTP_ERROR';
-    throw error;
-  } catch (error) {
-    if (error?.name === 'AbortError') {
-      const timeoutError = new Error(`GROQ_TIMEOUT_${groqTimeoutMs()}MS`);
-      timeoutError.code = 'GROQ_TIMEOUT';
-      throw timeoutError;
-    }
-    throw error;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-const nullableNumber = { anyOf: [{ type: 'number' }, { type: 'null' }] };
-const nullableBoolean = { anyOf: [{ type: 'boolean' }, { type: 'null' }] };
-
-const INTENTS = [
-  'current_services', 'eligible_services', 'status_summary', 'attention_summary', 'what_changed',
-  'eligibility_confirmation', 'explain_result', 'explain_effect', 'service_status_question',
-  'service_application_question', 'service_question', 'benefit_amount_question', 'social_security_impact',
-  'income_change', 'income_delta', 'new_job', 'employment_end', 'employment_end_negated',
-  'multi_intent', 'labor_dispute', 'disability_support', 'domestic_worker', 'greeting', 'general'
-];
-
-const routeSchema = {
-  type: 'object', additionalProperties: false,
-  properties: {
-    intent: { type: 'string', enum: INTENTS },
-    mode: { type: 'string', enum: ['current', 'what_if', 'reported', 'knowledge'] },
-    serviceMention: { type: 'string' },
-    income: nullableNumber,
-    salary: nullableNumber,
-    delta: nullableNumber,
-    amountType: { type: 'string', enum: ['none', 'absolute_income', 'job_salary', 'increase_by', 'decrease_by'] },
-    jobStage: { type: 'string', enum: ['unknown', 'reviewing', 'modification_requested', 'accepted', 'documented', 'started', 'rejected', 'ambiguous'] },
-    accepted: nullableBoolean,
-    started: nullableBoolean,
-    replacesCurrentJob: nullableBoolean,
-    endStage: { type: 'string', enum: ['unknown', 'planned', 'ended'] },
-    ended: nullableBoolean,
-    endReason: { type: 'string', enum: ['unknown', 'fixed_expiry', 'resignation', 'employer_termination', 'employer_termination_misconduct', 'business_closed', 'mutual', 'other'] },
-    incomeSource: { type: 'string', enum: ['unknown', 'salary', 'self_employment', 'other'] },
-    requiresClarification: { type: 'string' },
-    normalizedQuestion: { type: 'string' },
-    confidence: { type: 'number', minimum: 0, maximum: 1 }
-  },
-  required: ['intent', 'mode', 'serviceMention', 'income', 'salary', 'delta', 'amountType', 'jobStage', 'accepted', 'started', 'replacesCurrentJob', 'endStage', 'ended', 'endReason', 'incomeSource', 'requiresClarification', 'normalizedQuestion', 'confidence']
-};
-
-function compactState(state = {}) {
-  const keys = ['intent', 'mode', 'income', 'salary', 'delta', 'jobStage', 'accepted', 'started', 'replacesCurrentJob', 'endStage', 'endReason', 'incomeSource', 'lastServiceId', 'lastClaim'];
-  return Object.fromEntries(keys.filter(k => state[k] !== undefined).map(k => [k, state[k]]));
-}
-
-function profileContext(profile) {
-  return {
-    age: profile.age,
-    nationality: profile.nationality,
-    employment: profile.employment,
-    salary: profile.salary,
-    totalMonthlyIncome: profile.totalMonthlyIncome,
-    familySize: profile.familySize,
-    activeContract: profile.activeContract,
-    socialSecurityBeneficiary: profile.socialSecurityBeneficiary,
-    gosiRegistered: profile.gosiRegistered,
-    educationLevel: profile.educationLevel,
-    hasDisability: profile.hasDisability
-  };
-}
-
-export async function understandMessage({ message, profile, history = [], scenarioState = {}, deterministicFacts = null }) {
-  const facts = deterministicFacts || extractDeterministicFacts(message, scenarioState);
-  const recentHistory = history.slice(-3).map(item => `${item.role}: ${String(item.text || '').slice(0, 180)}`).join('\n');
-
-  const system = `
-أنت طبقة فهم دلالي لخدمة حكومية تجريبية اسمها صلة.
-مهمتك الوحيدة فهم رسالة المستفيد وإرجاع إطار دلالي منظم. لا تجب على المستفيد، لا تقرر أهلية، ولا تبحث عن خدمات.
-
-ركز على سبعة أشياء:
-1 نية السؤال
-2 هل الكلام حقيقة حالية أو حدث تم الإبلاغ عنه أو افتراض مستقبلي
-3 النفي بدقة: ما وافقت مختلف تماما عن وافقت، وما باشرت مختلف عن باشرت
-4 مرحلة الحدث: عرض تحت المراجعة، طلب تعديل، رفض، موافقة، توثيق، مباشرة
-5 معنى المبلغ: راتب نهائي أم زيادة بمقدار أم انخفاض بمقدار
-6 الإحالة إلى الكلام السابق مثل عليه، هذي، ليش قلت كذا، مؤهل أكيد
-7 إذا كان النص غير حاسم، اترك المعلومة unknown واطلب clarification محددا
-
-قواعد مهمة:
-- عبارة زاد راتبي 1000 تعني delta +1000 وليست راتبا جديدا 1000.
-- عبارة راتبي انخفض 500 تعني delta -500 وليست راتبا جديدا 500.
-- عبارة جاني عرض ب6500 بس ما وافقت عليه تعني reviewing وaccepted=false.
-- عبارة رفضت العرض تعني rejected.
-- عبارة طلبت تعديل العرض تعني modification_requested.
-- عبارة وافقت وبعدها غيرت رأيي تعني ambiguous وتحتاج current_offer_status.
-- الموافقة لا تعني المباشرة.
-- التوثيق لا يعني بدء الدخل.
-- لا تحول عدم الاشتراك بخدمة إلى عدم أهلية.
-- لا تحاول اختيار service id. إذا ذكر المستخدم اسم خدمة أو وصفا لها، ضع النص في serviceMention فقط.
-
-الحقائق المحلية أدناه عالية الثقة. لا تناقض أي حقيقة واضحة فيها، لكن يمكنك إكمال ما بقي غامضا.
-`;
-
-  const user = `
-الحقائق المحلية:
-${JSON.stringify({
-  intent: facts.intent,
-  mode: facts.mode,
-  money: facts.money,
-  delta: facts.delta,
-  jobStage: facts.jobStage,
-  accepted: facts.accepted,
-  started: facts.started,
-  replacesCurrentJob: facts.replacesCurrentJob,
-  endStage: facts.endStage,
-  endReason: facts.endReason,
-  incomeSource: facts.incomeSource,
-  requiresClarification: facts.requiresClarification
-})}
-
-حالة المحادثة:
-${JSON.stringify(compactState(scenarioState))}
-
-بيانات مختصرة للمستفيد:
-${JSON.stringify(profileContext(profile))}
-
-آخر المحادثة:
-${recentHistory || 'لا يوجد'}
-
-رسالة المستفيد:
-${message}
-`;
-
-  const data = await callGroq({
-    model: env('GROQ_MODEL', 'openai/gpt-oss-20b'),
-    reasoning: { effort: 'low' },
-    input: [{ role: 'system', content: system }, { role: 'user', content: user }],
-    text: { format: { type: 'json_schema', name: 'silah_semantic_frame', strict: true, schema: routeSchema } }
-  });
-
-  const text = outputText(data);
-  if (!text) throw new Error('EMPTY_AI_ROUTE');
-  const parsed = JSON.parse(text);
-  const route = baseRoute(parsed.intent, parsed.mode);
-  Object.assign(route, parsed);
-  route.incomeSource = parsed.incomeSource === 'unknown' ? null : parsed.incomeSource;
-  if (parsed.requiresClarification) route.requiresClarification = parsed.requiresClarification;
-  return applyDeterministicFacts(route, facts, {
-    fieldHint: parsed.intent === 'new_job' ? 'salary' : ['income_change', 'income_delta'].includes(parsed.intent) ? 'income' : null
-  });
-}
-
-export function shouldUseLocalRoute(route) {
-  if (!route || route.intent === 'general') return false;
-  if (route.pendingConfirmation || route.requiresClarification) return true;
-  if (route.confidence >= 0.9) return true;
-  return false;
-}
-
-function baseRoute(intent = 'general', mode = 'knowledge') {
-  return {
-    intent, mode, targetServiceIds: [], income: null, salary: null, delta: null,
-    jobStage: 'unknown', accepted: null, started: null, replacesCurrentJob: null,
-    endStage: 'unknown', ended: null, endReason: 'unknown', incomeSource: null,
-    laborDisputeTopic: '', explanationTarget: '', normalizedQuestion: '', confidence: 0.35,
-    pendingConfirmation: null, clearPendingConfirmation: false, confirmationRejected: false,
-    requiresClarification: null, profileOverrides: {}, refinement: null
-  };
-}
-
-function resolvePending(message, state) {
-  const pending = state.pendingConfirmation;
-  if (!pending) return null;
-  const route = baseRoute(state.intent || 'general', state.mode || 'knowledge');
-  route.clearPendingConfirmation = true;
-  if (isAffirmative(message)) {
-    if (pending.field === 'salary') route.salary = Number(pending.value);
-    if (pending.field === 'income') route.income = Number(pending.value);
-    route.confidence = 0.99;
-    return route;
-  }
-  if (isNegative(message)) {
-    route.confirmationRejected = true;
-    return route;
-  }
-  return null;
-}
-
-export function fallbackRoute(message = '', scenarioState = {}) {
-  const pending = resolvePending(message, scenarioState);
-  if (pending) return pending;
-
-  const facts = extractDeterministicFacts(message, scenarioState);
-  let route = baseRoute(facts.intent, facts.mode);
-  route = applyDeterministicFacts(route, facts, {
-    fieldHint: facts.intent === 'new_job' ? 'salary' : ['income_change', 'income_delta'].includes(facts.intent) ? 'income' : null
-  });
-
-  if (facts.intent === 'income_delta') {
-    route.income = null;
-    route.delta = facts.delta;
-  }
-
-  if (facts.intent === 'service_question' && facts.money && /راتب|دخل/.test(facts.normalized)) {
-    route.income = facts.money.value;
-    if (facts.money.needsConfirmation) route.pendingConfirmation = { kind: 'amount', field: 'income', value: facts.money.value, raw: facts.money.raw, confidence: facts.money.confidence, question: `تقصد ${new Intl.NumberFormat('en-US').format(facts.money.value)} ريال؟`, quickReplies: [`نعم، ${new Intl.NumberFormat('en-US').format(facts.money.value)} ريال`, 'لا، بكتب المبلغ كامل'] };
-  }
-
-  if (facts.intent === 'multi_intent') {
-    route.targetServiceIds = ['social_security', 'employment_end'];
-  }
-
-  if (facts.intent === 'labor_dispute') {
-    route.laborDisputeTopic = String(message).trim();
-    if (!route.targetServiceIds.length) route.targetServiceIds = ['labor_settlement'];
-  }
-
-  if (facts.intent === 'domestic_worker' && !route.targetServiceIds.length) {
-    route.targetServiceIds = ['domestic_worker_contract_documentation'];
-  }
-
-  if (facts.intent === 'disability_support' && !route.targetServiceIds.length) {
-    route.targetServiceIds = ['disability_evaluation', 'disability_financial_aid', 'traffic_facilities_certificate'];
-  }
-
-  if (facts.intent === 'service_question' && !route.targetServiceIds.length) {
-    const text = normalizeArabic(message);
-    if (/اقدر اقدم.*دخل ثاني|دخل ثاني.*اقدم/.test(text)) route.targetServiceIds = ['social_security'];
-  }
-
-  if (['eligibility_confirmation', 'service_application_question', 'service_status_question', 'explain_result', 'explain_effect', 'benefit_amount_question', 'social_security_impact'].includes(facts.intent) && !route.targetServiceIds.length) {
-    const id = referencedServiceId(scenarioState);
-    if (id) route.targetServiceIds = [id];
-  }
-
-  if (facts.intent === 'benefit_amount_question' && !route.targetServiceIds.length) route.targetServiceIds = ['social_security'];
-  if (facts.intent === 'social_security_impact' && !route.targetServiceIds.length) route.targetServiceIds = ['social_security'];
-
-  route.confidence = facts.intent === 'general' ? 0.35 : 0.96;
-  return route;
-}
-
-function knownService(serviceId) {
-  return serviceId ? serviceById[serviceId] : null;
-}
-
-function directAnswerForRelationship(item) {
-  const eligibility = item?.relationship?.eligibility;
-  if (['known_rule_not_met_currently', 'not_applicable_current_state'].includes(eligibility)) {
-    return `حسب البيانات المعروفة حاليا، فيه شرط معروف ما ينطبق على حالتك: ${item.body}`;
-  }
-  if (['preliminary_match', 'known_conditions_match', 'known_basic_condition_match'].includes(eligibility)) {
-    const unknown = item.unknowns?.length ? ` لكن ما زال نحتاج التحقق من ${item.unknowns.join('، ')}.` : '';
-    return `عندك تطابق أولي مع الشروط المعروفة، لكن ما أقدر أؤكد الأهلية النهائية.${unknown ? ` ${unknown.trim().replace(/^لكن\s*/, '')}` : ''}`;
-  }
-  const unknown = item?.unknowns?.length ? ` ما زال نحتاج ${item.unknowns.join('، ')}.` : '';
-  return `ما أقدر أؤكد الأهلية من البيانات الحالية.${unknown}`;
-}
-
-export function fallbackReply({ route, evaluation, profile, previousState = {} }) {
-  const results = evaluation.results || [];
-  const changes = evaluation.changes || [];
-  const first = results[0];
-  const targetId = route.targetServiceIds?.[0] || first?.serviceId || null;
-  const service = knownService(targetId);
-
-  if (route.intent === 'status_summary') {
-    const job = profile.employment === 'employed' ? 'موظف' : profile.employment === 'job_seeker' ? 'باحث عن عمل' : profile.employment === 'retired' ? 'متقاعد' : 'غير موظف حاليا';
-    const contract = profile.activeContract ? 'وعندك عقد وظيفي فعال' : 'وما عندك عقد وظيفي فعال';
-    return `حسب بيانات النموذج الحالية: ${profile.name}، العمر ${profile.age} سنة، الحالة ${job}، الدخل المعروف ${Number(profile.totalMonthlyIncome ?? profile.salary ?? 0)} ريال، حجم الأسرة ${profile.familySize}، ${contract}.`;
-  }
-
-  if (route.intent === 'attention_summary') {
-    const items = [...(evaluation.results || []), ...(evaluation.changes || [])];
-    if (!items.length) return 'ما ظهر شيء يحتاج إجراء عاجل ضمن البيانات التي يغطيها النموذج حاليا.';
-    return `لقيت ${items.length} شيء يستحق انتباهك بين خدمة مرتبطة بحالتك أو تحديث في بياناتك. عرضتها تحت مرتبة حسب علاقتها بوضعك الحالي.`;
-  }
-
-  if (changes.length && route.intent === 'what_changed') {
-    return `لقيت ${changes.length} تحديث في بيانات ${profile.name}. كل تحديث موضح تحته وش ممكن يتأثر وليش.`;
-  }
-
-  if (route.intent === 'eligibility_confirmation') {
-    if (!first) return `ما أقدر أؤكد الأهلية لـ${service?.name || 'الخدمة'} لأن البيانات الحالية ما تكفي لتطبيق الشروط بشكل كامل.`;
-    return directAnswerForRelationship(first);
-  }
-
-  if (route.intent === 'service_application_question') {
-    if (!first) return `التقديم على ${service?.name || 'الخدمة'} يحتاج أولا ربط السؤال بالخدمة وشروطها المنشورة.`;
-    const eligibility = first.relationship?.eligibility;
-    if (['known_rule_not_met_currently', 'not_applicable_current_state'].includes(eligibility)) {
-      return `الخدمة موجودة من حيث المبدأ، لكن حسب البيانات الحالية فيه شرط معروف ما ينطبق الآن: ${first.body}`;
-    }
-    if (targetId === 'social_security') {
-      return `عدم كونك مستفيدا حاليا لا يمنع التقديم على الضمان من حيث المبدأ. الأهلية نفسها تحتاج فحص الدخل المحتسب للأسرة والثروة وبقية الشروط${first.unknowns?.length ? `، وما زال يلزم التحقق من ${first.unknowns.join('، ')}` : ''}.`;
-    }
-    return `التقديم على ${service?.name || 'الخدمة'} متاح من حيث المبدأ عند استيفاء الشروط. ${first.body}${first.unknowns?.length ? ` وما زال يلزم التحقق من ${first.unknowns.join('، ')}.` : ''}`;
-  }
-
-  if (route.intent === 'service_status_question') {
-    if (targetId === 'senior_privilege_card') {
-      if (profile.seniorPrivilegeCardIssued === true) return 'بيانات النموذج تشير إلى أن بطاقة امتياز كبار السن صادرة.';
-      if (profile.seniorPrivilegeCardIssued === false) return 'بيانات النموذج تشير إلى أن البطاقة غير صادرة حاليا.';
-      return 'العمر والجنسية يطابقان الشرطين المعروفين للبطاقة، لكن ما عندي في بيانات النموذج معلومة تؤكد هل صدرت فعليا في حسابك.';
-    }
-    return `ما عندي حالة إصدار مؤكدة لـ${service?.name || 'هذه الخدمة'} في بيانات النموذج الحالية.`;
-  }
-
-  if (route.intent === 'explain_effect') {
-    const last = (previousState.lastResults || []).find(item => item.serviceId === targetId) || first;
-    if (last) return `${last.why}${last.body ? ` ${last.body}` : ''}${last.unknowns?.length ? ` وما زال غير محسوم: ${last.unknowns.join('، ')}.` : ''}`;
-    return `ما عندي أثر سابق مرتبط بـ${service?.name || 'الخدمة'} أقدر أشرحه في سياق المحادثة الحالية.`;
-  }
-
-  if (route.intent === 'explain_result') {
-    const last = (previousState.lastResults || []).find(item => item.serviceId === targetId) || first;
-    if (last) return `${last.title}: ${last.why}${last.unknowns?.length ? ` وما زال غير محسوم: ${last.unknowns.join('، ')}.` : ''}`;
-    return `ما عندي نتيجة سابقة واضحة مرتبطة بـ${service?.name || 'الخدمة'} في سياق المحادثة الحالية.`;
-  }
-
-  if (route.intent === 'benefit_amount_question') {
-    return 'ما أقدر أحدد مبلغ معاش الضمان بشكل موثوق من البيانات الموجودة في النموذج وحدها. حساب المبلغ يحتاج الدخل المحتسب الكامل للأسرة وبقية البيانات والقواعد الرسمية المطبقة على الحالة.';
-  }
-
-  if (route.intent === 'social_security_impact') {
-    if (/نزل|انخفض/.test(normalizeArabic(route.normalizedQuestion || ''))) {
-      return 'انخفاض الدخل لا يعني انقطاع الضمان من ناحية الدخل وحده. قد يتغير مبلغ المعاش بعد إعادة التقييم، وتبقى بقية بيانات الأسرة والثروة والشروط مؤثرة.';
-    }
-    return 'ارتفاع الدخل قد يغير مبلغ المعاش أو يؤثر على شرط الدخل، لكن ما أقدر أقول إن الضمان سيتوقف من الراتب وحده لأن بقية بيانات الأسرة والثروة والشروط تدخل في التقييم.';
-  }
-
-  if (route.intent === 'employment_end_negated') {
-    return 'بما أن العقد ما انتهى، ما نعامل حالتك كإنهاء علاقة وظيفية ولا نشغل نتائج ما بعد الانتهاء.';
-  }
-
-  if (route.intent === 'current_services' && results.length) {
-    return `حسب بيانات ${profile.name} الحالية، عندك ${results.length} نتيجة مرتبطة بوضعك الآن أو تستحق الانتباه. التفاصيل تحت تشرح سبب ظهور كل واحدة.`;
-  }
-
-  if (route.intent === 'eligible_services' && results.length) {
-    return `بناء على بياناتك الحالية، لقيت ${results.length} خدمة أو برنامج ممكن يكون مرتبطا بحالتك. ظهورها هنا مو حكم أهلية نهائي، وكل بطاقة توضح المعروف والناقص.`;
-  }
-
-  if (['service_question', 'domestic_worker'].includes(route.intent) && results.length === 1) {
-    const unknown = first.unknowns?.length ? ` وما زال يحتاج تحقق: ${first.unknowns.join('، ')}.` : '';
-    return `${first.body}${unknown}`;
-  }
-
-  if (['income_change', 'income_delta', 'new_job', 'employment_end', 'multi_intent', 'labor_dispute'].includes(route.intent) && results.length) {
-    const main = results.slice(0, 3).map(item => item.body).join(' ');
-    const unknowns = [...new Set(results.flatMap(item => item.unknowns || []))];
-    return `${main}${unknowns.length ? ` وللدقة أكثر ما زال نحتاج: ${unknowns.slice(0, 3).join('، ')}.` : ''}`.trim();
-  }
-
-  if (route.intent === 'greeting') return `هلا ${profile.name}. اسألني عن الخدمات المرتبطة بحالتك أو اشرح أي تغيير أو قرار تفكر فيه بطريقتك.`;
-  if (results.length) return `لقيت ${results.length} نتيجة مرتبطة بسؤالك. التفاصيل تحت توضح سبب الارتباط وما الذي ما زال يحتاج تحقق.`;
-  return 'ما قدرت أربط السؤال بقاعدة موثوقة داخل نطاق صلة الحالي. اشرح الحالة بشكل أبسط أو اذكر الخدمة أو التغيير المقصود.';
-}
 `````
 
 ## `src/knowledge.js`
@@ -7076,132 +5311,1088 @@ export function evaluateIntent(profile, intent, scenario = {}) {
 }
 `````
 
-## `START_HERE.md`
+## `src/ai.js`
 
 `````text
-# ابدأ من هنا
+import { serviceById } from './knowledge.js';
+import {
+  applyDeterministicFacts,
+  extractDeterministicFacts,
+  isAffirmative,
+  isNegative,
+  normalizeArabic,
+  referencedServiceId
+} from './nlu.js';
 
-## أسرع تشغيل على Windows
+const endpoint = 'https://api.groq.com/openai/v1/responses';
 
-1. فك ضغط المشروع
-2. اضغط مرتين على `SETUP_AND_START.cmd`
-3. الصق مفتاح Groq عندما يطلبه
-4. انتظر نجاح الفحص وتشغيل الخادم
-5. افتح `http://localhost:3000`
-
-المفتاح يحفظ محليا في `.env`. الملف متجاهل في Git.
-
-إذا كان المنفذ 3000 مستخدما، افتح `.env` وغير:
-
-```env
-PORT=3001
-```
-
-ثم افتح `http://localhost:3001`.
-
-## التشغيل اليدوي
-
-```powershell
-Copy-Item .env.example .env
-```
-
-ثم داخل `.env`:
-
-```env
-GROQ_API_KEY=gsk_ضع_مفتاحك_هنا
-GROQ_MODEL=openai/gpt-oss-20b
-GROQ_TIMEOUT_MS=8500
-PORT=3000
-```
-
-بعدها:
-
-```powershell
-npm run check
-npm start
-```
-
-
-## وش الجديد في V7 للعرض التنفيذي
-
-- زر `محادثة جديدة` يبدأ جلسة نظيفة مع بقاء الشخصية المختارة
-- علامة المعلومات بجانب `توأم الحالة` تشرح Digital Twin عند المرور أو التركيز
-- Benchmark مختصر في الصفحة، والتفاصيل الكاملة لكل تجربة حكومية تفتح عند الضغط على بطاقتها
-- قسم الأثر يعرض Baseline وسيناريو حساسية 3% و5% و10%، مع توضيح أن الحسبة افتراضية وليست Forecast
-- المقارنات ومنهجية القياس مطوية افتراضيا لتقليل طول الصفحة بدون حذف المحتوى
-
-## اختبار الصحة
-
-افتح:
-
-```text
-http://localhost:3000/api/health
-```
-
-المفروض يظهر:
-
-```json
-{
-  "ok": true,
-  "aiEnabled": true,
-  "routing": "semantic-frame-state-resolve-rule"
+function env(name, fallback = '') {
+  return process.env[name] || fallback;
 }
-```
 
-## اختبارات سريعة للمحادثة
+function outputText(data) {
+  const chunks = [];
+  for (const item of data.output || []) {
+    if (item.type !== 'message') continue;
+    for (const content of item.content || []) {
+      if (content.type === 'output_text' && typeof content.text === 'string') chunks.push(content.text);
+    }
+  }
+  return chunks.join('\n').trim();
+}
 
-خالد:
+function groqTimeoutMs() {
+  const value = Number(env('GROQ_TIMEOUT_MS', '8500'));
+  if (!Number.isFinite(value)) return 8500;
+  return Math.max(3000, Math.min(value, 15000));
+}
 
-```text
-جاني شغل بستة ونص ووافقت بس للحين ما باشرت، وش بيتغير علي؟
-```
+async function callGroq(payload) {
+  const apiKey = env('GROQ_API_KEY');
+  if (!apiKey || apiKey.includes('ضع_المفتاح')) {
+    const error = new Error('GROQ_API_KEY_MISSING');
+    error.code = 'GROQ_API_KEY_MISSING';
+    throw error;
+  }
 
-المفروض يعرف 6500 ولا يسأل عن الراتب، ثم يسأل فقط عن وضع الوظيفة الحالية إذا كان ذلك ضروريا.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), groqTimeoutMs());
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ store: false, ...payload }),
+      signal: controller.signal
+    });
+    if (response.ok) return response.json();
+    const body = await response.text();
+    const error = new Error(`GROQ_${response.status}: ${body.slice(0, 500)}`);
+    error.status = response.status;
+    error.code = response.status === 429 ? 'GROQ_RATE_LIMIT' : 'GROQ_HTTP_ERROR';
+    throw error;
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      const timeoutError = new Error(`GROQ_TIMEOUT_${groqTimeoutMs()}MS`);
+      timeoutError.code = 'GROQ_TIMEOUT';
+      throw timeoutError;
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
-اختبار رقم مختصر:
+const nullableNumber = { anyOf: [{ type: 'number' }, { type: 'null' }] };
+const nullableBoolean = { anyOf: [{ type: 'boolean' }, { type: 'null' }] };
 
-```text
-راتبي بيصير 7
-```
+const INTENTS = [
+  'current_services', 'eligible_services', 'status_summary', 'attention_summary', 'what_changed',
+  'eligibility_confirmation', 'explain_result', 'explain_effect', 'service_status_question',
+  'service_application_question', 'service_question', 'benefit_amount_question', 'social_security_impact',
+  'income_change', 'income_delta', 'new_job', 'employment_end', 'employment_end_negated',
+  'multi_intent', 'labor_dispute', 'disability_support', 'domestic_worker', 'greeting', 'general'
+];
 
-المفروض يسأل:
+const routeSchema = {
+  type: 'object', additionalProperties: false,
+  properties: {
+    intent: { type: 'string', enum: INTENTS },
+    mode: { type: 'string', enum: ['current', 'what_if', 'reported', 'knowledge'] },
+    serviceMention: { type: 'string' },
+    income: nullableNumber,
+    salary: nullableNumber,
+    delta: nullableNumber,
+    amountType: { type: 'string', enum: ['none', 'absolute_income', 'job_salary', 'increase_by', 'decrease_by'] },
+    jobStage: { type: 'string', enum: ['unknown', 'reviewing', 'modification_requested', 'accepted', 'documented', 'started', 'rejected', 'ambiguous'] },
+    accepted: nullableBoolean,
+    started: nullableBoolean,
+    replacesCurrentJob: nullableBoolean,
+    endStage: { type: 'string', enum: ['unknown', 'planned', 'ended'] },
+    ended: nullableBoolean,
+    endReason: { type: 'string', enum: ['unknown', 'fixed_expiry', 'resignation', 'employer_termination', 'employer_termination_misconduct', 'business_closed', 'mutual', 'other'] },
+    incomeSource: { type: 'string', enum: ['unknown', 'salary', 'self_employment', 'other'] },
+    requiresClarification: { type: 'string' },
+    normalizedQuestion: { type: 'string' },
+    confidence: { type: 'number', minimum: 0, maximum: 1 }
+  },
+  required: ['intent', 'mode', 'serviceMention', 'income', 'salary', 'delta', 'amountType', 'jobStage', 'accepted', 'started', 'replacesCurrentJob', 'endStage', 'ended', 'endReason', 'incomeSource', 'requiresClarification', 'normalizedQuestion', 'confidence']
+};
 
-```text
-تقصد 7,000 ريال؟
-```
+function compactState(state = {}) {
+  const keys = ['intent', 'mode', 'income', 'salary', 'delta', 'jobStage', 'accepted', 'started', 'replacesCurrentJob', 'endStage', 'endReason', 'incomeSource', 'lastServiceId', 'lastClaim'];
+  return Object.fromEntries(keys.filter(k => state[k] !== undefined).map(k => [k, state[k]]));
+}
 
-ريم:
+function profileContext(profile) {
+  return {
+    age: profile.age,
+    nationality: profile.nationality,
+    employment: profile.employment,
+    salary: profile.salary,
+    totalMonthlyIncome: profile.totalMonthlyIncome,
+    familySize: profile.familySize,
+    activeContract: profile.activeContract,
+    socialSecurityBeneficiary: profile.socialSecurityBeneficiary,
+    gosiRegistered: profile.gosiRegistered,
+    educationLevel: profile.educationLevel,
+    hasDisability: profile.hasDisability
+  };
+}
 
-```text
-بنفصل من وظيفتي، هل الضمان ممكن يناسبني؟
-```
+export async function understandMessage({ message, profile, history = [], scenarioState = {}, deterministicFacts = null }) {
+  const facts = deterministicFacts || extractDeterministicFacts(message, scenarioState);
+  const recentHistory = history.slice(-3).map(item => `${item.role}: ${String(item.text || '').slice(0, 180)}`).join('\n');
 
-المفروض لا يعتبر عدم الاستفادة الحالية مانعا من التقديم أو دليلا على عدم الأهلية.
+  const system = `
+أنت طبقة فهم دلالي لخدمة حكومية تجريبية اسمها صلة.
+مهمتك الوحيدة فهم رسالة المستفيد وإرجاع إطار دلالي منظم. لا تجب على المستفيد، لا تقرر أهلية، ولا تبحث عن خدمات.
 
-## قبل GitHub
+ركز على سبعة أشياء:
+1 نية السؤال
+2 هل الكلام حقيقة حالية أو حدث تم الإبلاغ عنه أو افتراض مستقبلي
+3 النفي بدقة: ما وافقت مختلف تماما عن وافقت، وما باشرت مختلف عن باشرت
+4 مرحلة الحدث: عرض تحت المراجعة، طلب تعديل، رفض، موافقة، توثيق، مباشرة
+5 معنى المبلغ: راتب نهائي أم زيادة بمقدار أم انخفاض بمقدار
+6 الإحالة إلى الكلام السابق مثل عليه، هذي، ليش قلت كذا، مؤهل أكيد
+7 إذا كان النص غير حاسم، اترك المعلومة unknown واطلب clarification محددا
 
-اقرأ `GITHUB_PUBLISH.md` وشغل:
+قواعد مهمة:
+- عبارة زاد راتبي 1000 تعني delta +1000 وليست راتبا جديدا 1000.
+- عبارة راتبي انخفض 500 تعني delta -500 وليست راتبا جديدا 500.
+- عبارة جاني عرض ب6500 بس ما وافقت عليه تعني reviewing وaccepted=false.
+- عبارة رفضت العرض تعني rejected.
+- عبارة طلبت تعديل العرض تعني modification_requested.
+- عبارة وافقت وبعدها غيرت رأيي تعني ambiguous وتحتاج current_offer_status.
+- الموافقة لا تعني المباشرة.
+- التوثيق لا يعني بدء الدخل.
+- لا تحول عدم الاشتراك بخدمة إلى عدم أهلية.
+- لا تحاول اختيار service id. إذا ذكر المستخدم اسم خدمة أو وصفا لها، ضع النص في serviceMention فقط.
 
-```powershell
-npm run check
-```
+الحقائق المحلية أدناه عالية الثقة. لا تناقض أي حقيقة واضحة فيها، لكن يمكنك إكمال ما بقي غامضا.
+`;
 
-## اختبار الـ100 حالة
+  const user = `
+الحقائق المحلية:
+${JSON.stringify({
+  intent: facts.intent,
+  mode: facts.mode,
+  money: facts.money,
+  delta: facts.delta,
+  jobStage: facts.jobStage,
+  accepted: facts.accepted,
+  started: facts.started,
+  replacesCurrentJob: facts.replacesCurrentJob,
+  endStage: facts.endStage,
+  endReason: facts.endReason,
+  incomeSource: facts.incomeSource,
+  requiresClarification: facts.requiresClarification
+})}
 
-بعد تشغيل الخادم على المنفذ الموجود في `.env` شغل:
+حالة المحادثة:
+${JSON.stringify(compactState(scenarioState))}
 
-```powershell
-npm run test:100:http
-```
+بيانات مختصرة للمستفيد:
+${JSON.stringify(profileContext(profile))}
 
-يمكنك تحديد عنوان مختلف:
+آخر المحادثة:
+${recentHistory || 'لا يوجد'}
 
-```powershell
-$env:SILAH_URL="http://localhost:3001"
-npm run test:100:http
-```
+رسالة المستفيد:
+${message}
+`;
 
-الـGold Set موجود في `tests/gold100.json`.
+  const data = await callGroq({
+    model: env('GROQ_MODEL', 'openai/gpt-oss-20b'),
+    reasoning: { effort: 'low' },
+    input: [{ role: 'system', content: system }, { role: 'user', content: user }],
+    text: { format: { type: 'json_schema', name: 'silah_semantic_frame', strict: true, schema: routeSchema } }
+  });
+
+  const text = outputText(data);
+  if (!text) throw new Error('EMPTY_AI_ROUTE');
+  const parsed = JSON.parse(text);
+  const route = baseRoute(parsed.intent, parsed.mode);
+  Object.assign(route, parsed);
+  route.incomeSource = parsed.incomeSource === 'unknown' ? null : parsed.incomeSource;
+  if (parsed.requiresClarification) route.requiresClarification = parsed.requiresClarification;
+  return applyDeterministicFacts(route, facts, {
+    fieldHint: parsed.intent === 'new_job' ? 'salary' : ['income_change', 'income_delta'].includes(parsed.intent) ? 'income' : null
+  });
+}
+
+export function shouldUseLocalRoute(route) {
+  if (!route || route.intent === 'general') return false;
+  if (route.pendingConfirmation || route.requiresClarification) return true;
+  if (route.confidence >= 0.9) return true;
+  return false;
+}
+
+function baseRoute(intent = 'general', mode = 'knowledge') {
+  return {
+    intent, mode, targetServiceIds: [], income: null, salary: null, delta: null,
+    jobStage: 'unknown', accepted: null, started: null, replacesCurrentJob: null,
+    endStage: 'unknown', ended: null, endReason: 'unknown', incomeSource: null,
+    laborDisputeTopic: '', explanationTarget: '', normalizedQuestion: '', confidence: 0.35,
+    pendingConfirmation: null, clearPendingConfirmation: false, confirmationRejected: false,
+    requiresClarification: null, profileOverrides: {}, refinement: null
+  };
+}
+
+function resolvePending(message, state) {
+  const pending = state.pendingConfirmation;
+  if (!pending) return null;
+  const route = baseRoute(state.intent || 'general', state.mode || 'knowledge');
+  route.clearPendingConfirmation = true;
+  if (isAffirmative(message)) {
+    if (pending.field === 'salary') route.salary = Number(pending.value);
+    if (pending.field === 'income') route.income = Number(pending.value);
+    route.confidence = 0.99;
+    return route;
+  }
+  if (isNegative(message)) {
+    route.confirmationRejected = true;
+    return route;
+  }
+  return null;
+}
+
+export function fallbackRoute(message = '', scenarioState = {}) {
+  const pending = resolvePending(message, scenarioState);
+  if (pending) return pending;
+
+  const facts = extractDeterministicFacts(message, scenarioState);
+  let route = baseRoute(facts.intent, facts.mode);
+  route = applyDeterministicFacts(route, facts, {
+    fieldHint: facts.intent === 'new_job' ? 'salary' : ['income_change', 'income_delta'].includes(facts.intent) ? 'income' : null
+  });
+
+  if (facts.intent === 'income_delta') {
+    route.income = null;
+    route.delta = facts.delta;
+  }
+
+  if (facts.intent === 'service_question' && facts.money && /راتب|دخل/.test(facts.normalized)) {
+    route.income = facts.money.value;
+    if (facts.money.needsConfirmation) route.pendingConfirmation = { kind: 'amount', field: 'income', value: facts.money.value, raw: facts.money.raw, confidence: facts.money.confidence, question: `تقصد ${new Intl.NumberFormat('en-US').format(facts.money.value)} ريال؟`, quickReplies: [`نعم، ${new Intl.NumberFormat('en-US').format(facts.money.value)} ريال`, 'لا، بكتب المبلغ كامل'] };
+  }
+
+  if (facts.intent === 'multi_intent') {
+    route.targetServiceIds = ['social_security', 'employment_end'];
+  }
+
+  if (facts.intent === 'labor_dispute') {
+    route.laborDisputeTopic = String(message).trim();
+    if (!route.targetServiceIds.length) route.targetServiceIds = ['labor_settlement'];
+  }
+
+  if (facts.intent === 'domestic_worker' && !route.targetServiceIds.length) {
+    route.targetServiceIds = ['domestic_worker_contract_documentation'];
+  }
+
+  if (facts.intent === 'disability_support' && !route.targetServiceIds.length) {
+    route.targetServiceIds = ['disability_evaluation', 'disability_financial_aid', 'traffic_facilities_certificate'];
+  }
+
+  if (facts.intent === 'service_question' && !route.targetServiceIds.length) {
+    const text = normalizeArabic(message);
+    if (/اقدر اقدم.*دخل ثاني|دخل ثاني.*اقدم/.test(text)) route.targetServiceIds = ['social_security'];
+  }
+
+  if (['eligibility_confirmation', 'service_application_question', 'service_status_question', 'explain_result', 'explain_effect', 'benefit_amount_question', 'social_security_impact'].includes(facts.intent) && !route.targetServiceIds.length) {
+    const id = referencedServiceId(scenarioState);
+    if (id) route.targetServiceIds = [id];
+  }
+
+  if (facts.intent === 'benefit_amount_question' && !route.targetServiceIds.length) route.targetServiceIds = ['social_security'];
+  if (facts.intent === 'social_security_impact' && !route.targetServiceIds.length) route.targetServiceIds = ['social_security'];
+
+  route.confidence = facts.intent === 'general' ? 0.35 : 0.96;
+  return route;
+}
+
+function knownService(serviceId) {
+  return serviceId ? serviceById[serviceId] : null;
+}
+
+function directAnswerForRelationship(item) {
+  const eligibility = item?.relationship?.eligibility;
+  if (['known_rule_not_met_currently', 'not_applicable_current_state'].includes(eligibility)) {
+    return `حسب البيانات المعروفة حاليا، فيه شرط معروف ما ينطبق على حالتك: ${item.body}`;
+  }
+  if (['preliminary_match', 'known_conditions_match', 'known_basic_condition_match'].includes(eligibility)) {
+    const unknown = item.unknowns?.length ? ` لكن ما زال نحتاج التحقق من ${item.unknowns.join('، ')}.` : '';
+    return `عندك تطابق أولي مع الشروط المعروفة، لكن ما أقدر أؤكد الأهلية النهائية.${unknown ? ` ${unknown.trim().replace(/^لكن\s*/, '')}` : ''}`;
+  }
+  const unknown = item?.unknowns?.length ? ` ما زال نحتاج ${item.unknowns.join('، ')}.` : '';
+  return `ما أقدر أؤكد الأهلية من البيانات الحالية.${unknown}`;
+}
+
+export function fallbackReply({ route, evaluation, profile, previousState = {} }) {
+  const results = evaluation.results || [];
+  const changes = evaluation.changes || [];
+  const first = results[0];
+  const targetId = route.targetServiceIds?.[0] || first?.serviceId || null;
+  const service = knownService(targetId);
+
+  if (route.intent === 'status_summary') {
+    const job = profile.employment === 'employed' ? 'موظف' : profile.employment === 'job_seeker' ? 'باحث عن عمل' : profile.employment === 'retired' ? 'متقاعد' : 'غير موظف حاليا';
+    const contract = profile.activeContract ? 'وعندك عقد وظيفي فعال' : 'وما عندك عقد وظيفي فعال';
+    return `حسب بيانات النموذج الحالية: ${profile.name}، العمر ${profile.age} سنة، الحالة ${job}، الدخل المعروف ${Number(profile.totalMonthlyIncome ?? profile.salary ?? 0)} ريال، حجم الأسرة ${profile.familySize}، ${contract}.`;
+  }
+
+  if (route.intent === 'attention_summary') {
+    const items = [...(evaluation.results || []), ...(evaluation.changes || [])];
+    if (!items.length) return 'ما ظهر شيء يحتاج إجراء عاجل ضمن البيانات التي يغطيها النموذج حاليا.';
+    return `لقيت ${items.length} شيء يستحق انتباهك بين خدمة مرتبطة بحالتك أو تحديث في بياناتك. عرضتها تحت مرتبة حسب علاقتها بوضعك الحالي.`;
+  }
+
+  if (changes.length && route.intent === 'what_changed') {
+    return `لقيت ${changes.length} تحديث في بيانات ${profile.name}. كل تحديث موضح تحته وش ممكن يتأثر وليش.`;
+  }
+
+  if (route.intent === 'eligibility_confirmation') {
+    if (!first) return `ما أقدر أؤكد الأهلية لـ${service?.name || 'الخدمة'} لأن البيانات الحالية ما تكفي لتطبيق الشروط بشكل كامل.`;
+    return directAnswerForRelationship(first);
+  }
+
+  if (route.intent === 'service_application_question') {
+    if (!first) return `التقديم على ${service?.name || 'الخدمة'} يحتاج أولا ربط السؤال بالخدمة وشروطها المنشورة.`;
+    const eligibility = first.relationship?.eligibility;
+    if (['known_rule_not_met_currently', 'not_applicable_current_state'].includes(eligibility)) {
+      return `الخدمة موجودة من حيث المبدأ، لكن حسب البيانات الحالية فيه شرط معروف ما ينطبق الآن: ${first.body}`;
+    }
+    if (targetId === 'social_security') {
+      return `عدم كونك مستفيدا حاليا لا يمنع التقديم على الضمان من حيث المبدأ. الأهلية نفسها تحتاج فحص الدخل المحتسب للأسرة والثروة وبقية الشروط${first.unknowns?.length ? `، وما زال يلزم التحقق من ${first.unknowns.join('، ')}` : ''}.`;
+    }
+    return `التقديم على ${service?.name || 'الخدمة'} متاح من حيث المبدأ عند استيفاء الشروط. ${first.body}${first.unknowns?.length ? ` وما زال يلزم التحقق من ${first.unknowns.join('، ')}.` : ''}`;
+  }
+
+  if (route.intent === 'service_status_question') {
+    if (targetId === 'senior_privilege_card') {
+      if (profile.seniorPrivilegeCardIssued === true) return 'بيانات النموذج تشير إلى أن بطاقة امتياز كبار السن صادرة.';
+      if (profile.seniorPrivilegeCardIssued === false) return 'بيانات النموذج تشير إلى أن البطاقة غير صادرة حاليا.';
+      return 'العمر والجنسية يطابقان الشرطين المعروفين للبطاقة، لكن ما عندي في بيانات النموذج معلومة تؤكد هل صدرت فعليا في حسابك.';
+    }
+    return `ما عندي حالة إصدار مؤكدة لـ${service?.name || 'هذه الخدمة'} في بيانات النموذج الحالية.`;
+  }
+
+  if (route.intent === 'explain_effect') {
+    const last = (previousState.lastResults || []).find(item => item.serviceId === targetId) || first;
+    if (last) return `${last.why}${last.body ? ` ${last.body}` : ''}${last.unknowns?.length ? ` وما زال غير محسوم: ${last.unknowns.join('، ')}.` : ''}`;
+    return `ما عندي أثر سابق مرتبط بـ${service?.name || 'الخدمة'} أقدر أشرحه في سياق المحادثة الحالية.`;
+  }
+
+  if (route.intent === 'explain_result') {
+    const last = (previousState.lastResults || []).find(item => item.serviceId === targetId) || first;
+    if (last) return `${last.title}: ${last.why}${last.unknowns?.length ? ` وما زال غير محسوم: ${last.unknowns.join('، ')}.` : ''}`;
+    return `ما عندي نتيجة سابقة واضحة مرتبطة بـ${service?.name || 'الخدمة'} في سياق المحادثة الحالية.`;
+  }
+
+  if (route.intent === 'benefit_amount_question') {
+    return 'ما أقدر أحدد مبلغ معاش الضمان بشكل موثوق من البيانات الموجودة في النموذج وحدها. حساب المبلغ يحتاج الدخل المحتسب الكامل للأسرة وبقية البيانات والقواعد الرسمية المطبقة على الحالة.';
+  }
+
+  if (route.intent === 'social_security_impact') {
+    if (/نزل|انخفض/.test(normalizeArabic(route.normalizedQuestion || ''))) {
+      return 'انخفاض الدخل لا يعني انقطاع الضمان من ناحية الدخل وحده. قد يتغير مبلغ المعاش بعد إعادة التقييم، وتبقى بقية بيانات الأسرة والثروة والشروط مؤثرة.';
+    }
+    return 'ارتفاع الدخل قد يغير مبلغ المعاش أو يؤثر على شرط الدخل، لكن ما أقدر أقول إن الضمان سيتوقف من الراتب وحده لأن بقية بيانات الأسرة والثروة والشروط تدخل في التقييم.';
+  }
+
+  if (route.intent === 'employment_end_negated') {
+    return 'بما أن العقد ما انتهى، ما نعامل حالتك كإنهاء علاقة وظيفية ولا نشغل نتائج ما بعد الانتهاء.';
+  }
+
+  if (route.intent === 'current_services' && results.length) {
+    return `حسب بيانات ${profile.name} الحالية، عندك ${results.length} نتيجة مرتبطة بوضعك الآن أو تستحق الانتباه. التفاصيل تحت تشرح سبب ظهور كل واحدة.`;
+  }
+
+  if (route.intent === 'eligible_services' && results.length) {
+    return `بناء على بياناتك الحالية، لقيت ${results.length} خدمة أو برنامج ممكن يكون مرتبطا بحالتك. ظهورها هنا مو حكم أهلية نهائي، وكل بطاقة توضح المعروف والناقص.`;
+  }
+
+  if (['service_question', 'domestic_worker'].includes(route.intent) && results.length === 1) {
+    const unknown = first.unknowns?.length ? ` وما زال يحتاج تحقق: ${first.unknowns.join('، ')}.` : '';
+    return `${first.body}${unknown}`;
+  }
+
+  if (['income_change', 'income_delta', 'new_job', 'employment_end', 'multi_intent', 'labor_dispute'].includes(route.intent) && results.length) {
+    const main = results.slice(0, 3).map(item => item.body).join(' ');
+    const unknowns = [...new Set(results.flatMap(item => item.unknowns || []))];
+    return `${main}${unknowns.length ? ` وللدقة أكثر ما زال نحتاج: ${unknowns.slice(0, 3).join('، ')}.` : ''}`.trim();
+  }
+
+  if (route.intent === 'greeting') return `هلا ${profile.name}. اسألني عن الخدمات المرتبطة بحالتك أو اشرح أي تغيير أو قرار تفكر فيه بطريقتك.`;
+  if (results.length) return `لقيت ${results.length} نتيجة مرتبطة بسؤالك. التفاصيل تحت توضح سبب الارتباط وما الذي ما زال يحتاج تحقق.`;
+  return 'ما قدرت أربط السؤال بقاعدة موثوقة داخل نطاق صلة الحالي. اشرح الحالة بشكل أبسط أو اذكر الخدمة أو التغيير المقصود.';
+}
+`````
+
+## `server.js`
+
+`````text
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { benchmarks, personaById, personas, services, serviceById } from './src/knowledge.js';
+import { evaluateIntent, currentServices, opportunities, changesFor } from './src/rules.js';
+import { fallbackReply, fallbackRoute, shouldUseLocalRoute, understandMessage } from './src/ai.js';
+import { extractDeterministicFacts } from './src/nlu.js';
+import { retrieveRelevantServices, strongCandidateIds } from './src/retrieval.js';
+
+const root = path.dirname(fileURLToPath(import.meta.url));
+loadEnv(path.join(root, '.env'));
+const port = Number(process.env.PORT || 3000);
+const publicDir = path.join(root, 'public');
+
+function loadEnv(file) {
+  if (!fs.existsSync(file)) return;
+  const text = fs.readFileSync(file, 'utf8');
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const index = line.indexOf('=');
+    if (index < 1) continue;
+    const key = line.slice(0, index).trim();
+    const value = line.slice(index + 1).trim().replace(/^['"]|['"]$/g, '');
+    if (!(key in process.env)) process.env[key] = value;
+  }
+}
+
+function hasAiKey() {
+  const key = process.env.GROQ_API_KEY || '';
+  return Boolean(key && !key.includes('ضع_المفتاح'));
+}
+
+function json(res, status, value) {
+  const body = JSON.stringify(value);
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': Buffer.byteLength(body),
+    'Cache-Control': 'no-store'
+  });
+  res.end(body);
+}
+
+function text(res, status, value, contentType = 'text/plain; charset=utf-8') {
+  res.writeHead(status, {
+    'Content-Type': contentType,
+    'Content-Length': Buffer.byteLength(value)
+  });
+  res.end(value);
+}
+
+async function readBody(req) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > 1_000_000) throw new Error('REQUEST_TOO_LARGE');
+    chunks.push(chunk);
+  }
+  if (!chunks.length) return {};
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+}
+
+function publicService(service) {
+  return {
+    id: service.id,
+    name: service.name,
+    provider: service.provider || 'وزارة الموارد البشرية والتنمية الاجتماعية',
+    sector: service.sector,
+    summary: service.summary,
+    channel: service.channel,
+    duration: service.duration,
+    sourceUrl: service.sourceUrl,
+    regulationUrl: service.regulationUrl || null,
+    checkedAt: service.checkedAt,
+    ruleFacts: service.ruleFacts,
+    requiredData: service.requiredData,
+    triggerSignals: service.triggerSignals || [],
+    audience: service.audience || [],
+    decisionPolicy: service.decisionPolicy
+  };
+}
+
+function publicProfile(profile) {
+  return { ...profile };
+}
+
+function mergeScenario(previous = {}, route = {}) {
+  const next = { ...previous };
+  const unconfirmedField = route.pendingConfirmation?.field || null;
+
+  const mergeValue = (key, value, emptyValues = [null, undefined, '', 'unknown']) => {
+    if (!emptyValues.includes(value)) next[key] = value;
+  };
+
+  mergeValue('mode', route.mode, [null, undefined, '', 'knowledge']);
+  if (unconfirmedField !== 'income') mergeValue('income', route.income);
+  if (unconfirmedField !== 'salary') mergeValue('salary', route.salary);
+  mergeValue('delta', route.delta);
+  mergeValue('jobStage', route.jobStage);
+  if (route.accepted !== null && route.accepted !== undefined) next.accepted = route.accepted;
+  if (route.started !== null && route.started !== undefined) next.started = route.started;
+  if (route.replacesCurrentJob !== null && route.replacesCurrentJob !== undefined) next.replacesCurrentJob = route.replacesCurrentJob;
+  mergeValue('endStage', route.endStage);
+  if (route.ended !== null && route.ended !== undefined) next.ended = route.ended;
+  mergeValue('endReason', route.endReason);
+  mergeValue('incomeSource', route.incomeSource);
+  mergeValue('laborDisputeTopic', route.laborDisputeTopic);
+
+  if (route.profileOverrides && typeof route.profileOverrides === 'object') {
+    next.profileOverrides = { ...(previous.profileOverrides || {}), ...route.profileOverrides };
+  }
+
+  if (Array.isArray(route.targetServiceIds) && route.targetServiceIds.length) {
+    next.targetServiceIds = [...new Set(route.targetServiceIds)];
+  }
+
+  if (route.pendingConfirmation) next.pendingConfirmation = route.pendingConfirmation;
+  if (route.clearPendingConfirmation) delete next.pendingConfirmation;
+
+  next.slotMeta = { ...(previous.slotMeta || {}) };
+  if (route.refinement?.money && !route.pendingConfirmation) {
+    const field = route.intent === 'new_job' ? 'salary' : ['income_change', 'service_question'].includes(route.intent) ? 'income' : null;
+    if (field && route[field] != null) {
+      next.slotMeta[field] = {
+        source: 'user_message',
+        confidence: route.refinement.money.confidence,
+        interpretation: route.refinement.money.interpretation,
+        raw: route.refinement.money.raw || ''
+      };
+    }
+  }
+
+  return next;
+}
+
+function normalizeIntent(route) {
+  return route.intent || 'general';
+}
+
+function ensureScenario(route, previous = {}) {
+  const scenario = mergeScenario(previous, route);
+  scenario.mode = route.mode || scenario.mode || 'knowledge';
+  scenario.targetServiceIds = scenario.targetServiceIds || route.targetServiceIds || [];
+
+  if (scenario.income == null && route.salary != null && route.intent === 'income_change') scenario.income = route.salary;
+  if (scenario.salary == null && route.income != null && route.intent === 'new_job') scenario.salary = route.income;
+  if (scenario.replacesCurrentJob === undefined) scenario.replacesCurrentJob = null;
+  if (!scenario.jobStage) scenario.jobStage = 'unknown';
+  if (!scenario.endStage) scenario.endStage = 'unknown';
+  if (!scenario.endReason) scenario.endReason = 'unknown';
+  if (!scenario.profileOverrides) scenario.profileOverrides = {};
+  if (scenario.delta === undefined) scenario.delta = null;
+  if (scenario.accepted === undefined) scenario.accepted = null;
+  if (scenario.started === undefined) scenario.started = null;
+  if (scenario.ended === undefined) scenario.ended = null;
+
+  return scenario;
+}
+
+function enrichRouteFromHint(route, body) {
+  if (!body.intentHint) return route;
+  return { ...route, intent: body.intentHint, mode: body.modeHint || route.mode };
+}
+
+
+function simulationView(profile, intent, scenario, evaluation) {
+  if (!['income_change', 'new_job', 'employment_end'].includes(intent)) return null;
+
+  const current = [];
+  const hypothetical = [];
+  let title = 'معاينة أثر السيناريو';
+  let status = scenario.mode === 'reported' ? 'تغيير أبلغ عنه المستفيد' : 'نسخة افتراضية فقط';
+
+  if (intent === 'income_change') {
+    const nextIncome = Number(scenario.income);
+    if (!Number.isFinite(nextIncome)) return null;
+    title = 'توأم الحالة للدخل';
+    current.push(`الدخل الحالي ${Number(profile.totalMonthlyIncome ?? profile.salary ?? 0)} ريال`);
+    hypothetical.push(`الدخل في السيناريو ${nextIncome} ريال`);
+  }
+
+  if (intent === 'new_job') {
+    const salary = Number(scenario.salary);
+    title = 'توأم الحالة للوظيفة الجديدة';
+    current.push(profile.activeContract ? 'عقد حالي فعال' : 'لا يوجد عقد حالي فعال');
+    current.push(`الدخل الحالي ${Number(profile.totalMonthlyIncome ?? profile.salary ?? 0)} ريال`);
+    if (Number.isFinite(salary)) hypothetical.push(`راتب الوظيفة الجديدة ${salary} ريال`);
+    const stages = {
+      reviewing: 'العرض تحت المراجعة',
+      accepted: 'وافقت من جهتك ولم يبدأ الدخل',
+      documented: 'العقد موثق في السيناريو ولم يبدأ الدخل',
+      started: 'بدأ العمل والدخل في السيناريو',
+      unknown: 'مرحلة الوظيفة تحتاج تحديد'
+    };
+    hypothetical.push(stages[scenario.jobStage || 'unknown']);
+    if (scenario.replacesCurrentJob === true) hypothetical.push('الوظيفة الجديدة بديلة عن الحالية');
+    if (scenario.replacesCurrentJob === false) hypothetical.push('العقد الحالي سيبقى قائما');
+  }
+
+  if (intent === 'employment_end') {
+    title = 'توأم الحالة للعلاقة الوظيفية';
+    current.push(profile.activeContract ? 'العقد الحالي فعال' : 'لا يوجد عقد فعال');
+    hypothetical.push(scenario.endStage === 'ended' ? 'العلاقة انتهت في السيناريو' : 'العلاقة ستنتهي ولم تنته بعد');
+    const reasons = {
+      fixed_expiry: 'انتهاء مدة العقد',
+      resignation: 'استقالة',
+      employer_termination: 'إنهاء من صاحب العمل',
+      business_closed: 'انتهاء نشاط المنشأة',
+      mutual: 'اتفاق متبادل',
+      other: 'سبب آخر',
+      unknown: 'السبب يحتاج تحديد'
+    };
+    hypothetical.push(reasons[scenario.endReason || 'unknown']);
+  }
+
+  const affected = [...new Set((evaluation.results || [])
+    .map(item => item.serviceId)
+    .filter(Boolean)
+    .map(id => serviceById[id]?.name)
+    .filter(Boolean))];
+
+  return {
+    active: true,
+    title,
+    status,
+    current,
+    hypothetical,
+    affected,
+    note: 'هذه المعاينة منفصلة عن بيانات المستفيد الحالية ولا تحدث أي سجل رسمي.'
+  };
+}
+
+async function handleChat(req, res) {
+  const body = await readBody(req);
+  const message = String(body.message || '').trim();
+  const profile = personaById[body.profileId] || personaById.khalid;
+  const rawHistory = Array.isArray(body.history) ? body.history.slice(-8) : [];
+  const history = rawHistory.length && rawHistory[rawHistory.length - 1]?.role === 'user' && String(rawHistory[rawHistory.length - 1]?.text || '').trim() === message
+    ? rawHistory.slice(0, -1)
+    : rawHistory;
+  const previousState = body.scenarioState && typeof body.scenarioState === 'object' ? body.scenarioState : {};
+
+  if (!message) return json(res, 400, { error: 'اكتب رسالة أولا' });
+
+  const deterministicFacts = extractDeterministicFacts(message, previousState);
+  const localRoute = fallbackRoute(message, previousState);
+  const profilePriorityIds = [...new Set([
+    ...currentServices(profile),
+    ...opportunities(profile)
+  ].map(item => item.serviceId).filter(Boolean))];
+
+  // الاسترجاع محلي ورخيص. نحتفظ بحد أعلى صغير، لكن لا نرسل المرشحات للـAI
+  // في أحداث مثل وظيفة جديدة أو تغير دخل لأن النموذج يحتاج فهم اللغة فقط.
+  const localCandidateLimit = localRoute.intent === 'general' ? 3 : 2;
+  const candidates = retrieveRelevantServices({
+    message,
+    profile,
+    previousState,
+    priorityIds: profilePriorityIds,
+    limit: localCandidateLimit
+  });
+
+  const aiCandidates = [];
+
+  let route = localRoute;
+  let aiMode = 'local';
+  let aiAttempted = false;
+  let aiSucceeded = false;
+
+  if (hasAiKey() && !shouldUseLocalRoute(localRoute, previousState)) {
+    aiAttempted = true;
+    try {
+      route = await understandMessage({
+        message,
+        profile,
+        history,
+        scenarioState: previousState,
+        deterministicFacts
+      });
+      aiMode = 'ai';
+      aiSucceeded = true;
+
+    } catch (error) {
+      console.error('[router]', error.code || error.message);
+      route = localRoute;
+      aiMode = error.code === 'GROQ_TIMEOUT'
+        ? 'fallback_timeout'
+        : error.code === 'GROQ_RATE_LIMIT'
+          ? 'fallback_rate_limit'
+          : 'fallback';
+    }
+  }
+
+  if (!(route.targetServiceIds || []).length) {
+    const serviceAware = new Set(['service_question', 'eligibility_confirmation', 'service_application_question', 'service_status_question', 'explain_result', 'explain_effect', 'benefit_amount_question', 'social_security_impact']);
+    const strongIds = strongCandidateIds(candidates);
+    if (strongIds.length && (route.intent === 'general' || serviceAware.has(route.intent))) {
+      route = {
+        ...route,
+        intent: route.intent === 'general' ? 'service_question' : route.intent,
+        mode: route.mode || 'knowledge',
+        targetServiceIds: strongIds,
+        confidence: Math.max(Number(route.confidence || 0), 0.78)
+      };
+      if (aiMode === 'ai') aiMode = 'ai_retrieval';
+      else if (aiMode === 'local') aiMode = 'local_retrieval';
+    }
+  }
+
+  route = enrichRouteFromHint(route, body);
+  let intent = normalizeIntent(route);
+  if (intent === 'general' && Array.isArray(route.targetServiceIds) && route.targetServiceIds.length) intent = 'service_question';
+  const scenario = ensureScenario(route, previousState);
+  scenario.intent = intent;
+
+  const routingMeta = {
+    aiCalls: aiAttempted ? 1 : 0,
+    aiSucceeded,
+    strategy: 'semantic-frame-state-resolve-rule',
+    candidateServiceIds: candidates.map(item => item.id),
+    candidateCount: candidates.length,
+    aiCandidateServiceIds: aiCandidates.map(item => item.id),
+    aiCandidateCount: aiCandidates.length,
+    refinement: {
+      intent: deterministicFacts.intent,
+      jobStage: deterministicFacts.jobStage,
+      money: deterministicFacts.money
+        ? {
+            value: deterministicFacts.money.value,
+            confidence: deterministicFacts.money.confidence,
+            needsConfirmation: deterministicFacts.money.needsConfirmation,
+            interpretation: deterministicFacts.money.interpretation
+          }
+        : null
+    }
+  };
+
+  const referentialIntents = new Set(['eligibility_confirmation', 'service_application_question', 'service_status_question', 'explain_result', 'explain_effect']);
+  if (referentialIntents.has(intent) && !(route.targetServiceIds || []).length) {
+    const previousServices = [...new Map((previousState.lastResults || []).filter(item => item?.serviceId).map(item => [item.serviceId, item])).values()];
+    if (previousServices.length > 1) {
+      return json(res, 200, {
+        reply: 'تقصد أي خدمة من النتائج اللي قبل؟',
+        quickReplies: previousServices.slice(0, 4).map(item => item.title || serviceById[item.serviceId]?.name || item.serviceId),
+        results: [], changes: [], route: { ...route, intent }, scenarioState: scenario,
+        aiMode, aiEnabled: hasAiKey(), routingMeta, simulation: null
+      });
+    }
+  }
+
+  if (route.requiresClarification === 'income_source') {
+    return json(res, 200, {
+      reply: 'هذا الدخل من راتب وظيفة، عمل حر، أو مصدر آخر؟',
+      quickReplies: ['راتب من وظيفة', 'دخل من عمل حر', 'مصدر آخر'],
+      results: [], changes: [], route: { ...route, intent }, scenarioState: scenario,
+      aiMode, aiEnabled: hasAiKey(), routingMeta, simulation: null
+    });
+  }
+
+  if (route.requiresClarification === 'current_offer_status') {
+    return json(res, 200, {
+      reply: 'بعد ما غيرت رأيك، وش وضع العرض الآن؟ ما زلت موافق، أو تراجعت عنه؟',
+      quickReplies: ['ما زلت موافق', 'تراجعت عنه'],
+      results: [], changes: [], route: { ...route, intent }, scenarioState: scenario,
+      aiMode, aiEnabled: hasAiKey(), routingMeta, simulation: null
+    });
+  }
+
+  if (route.pendingConfirmation) {
+    return json(res, 200, {
+      reply: route.pendingConfirmation.question,
+      quickReplies: route.pendingConfirmation.quickReplies || [],
+      results: [],
+      changes: [],
+      route: { ...route, intent },
+      scenarioState: scenario,
+      aiMode,
+      aiEnabled: hasAiKey(),
+      routingMeta,
+      simulation: simulationView(profile, intent, scenario, { results: [] })
+    });
+  }
+
+  if (route.confirmationRejected) {
+    return json(res, 200, {
+      reply: 'تمام. اكتب المبلغ كامل مثل 6500 عشان ما أفترض رقم من عندي.',
+      quickReplies: [],
+      results: [],
+      changes: [],
+      route: { ...route, intent },
+      scenarioState: scenario,
+      aiMode,
+      aiEnabled: hasAiKey(),
+      routingMeta,
+      simulation: simulationView(profile, intent, scenario, { results: [] })
+    });
+  }
+
+  let evaluation;
+  if (['explain_result', 'explain_effect'].includes(intent) && Array.isArray(previousState.lastResults) && previousState.lastResults.length) {
+    evaluation = { needsClarification: false, results: previousState.lastResults, changes: previousState.lastChanges || [] };
+  } else {
+    evaluation = evaluateIntent(profile, intent, scenario);
+  }
+
+  if (evaluation.needsClarification) {
+    return json(res, 200, {
+      reply: evaluation.question,
+      quickReplies: evaluation.quickReplies || [],
+      results: [],
+      changes: [],
+      route: { ...route, intent },
+      scenarioState: scenario,
+      aiMode,
+      aiEnabled: hasAiKey(),
+      routingMeta,
+      simulation: simulationView(profile, intent, scenario, evaluation)
+    });
+  }
+
+  if (intent === 'general' && !(route.targetServiceIds || []).length) {
+    return json(res, 200, {
+      reply: 'ما لقيت ارتباطا كافيا في قاعدة صلة الحالية عشان أعطيك جواب بثقة. اشرح الحالة بتفصيل بسيط أكثر، أو اذكر اسم الخدمة أو التغيير اللي تقصده.',
+      quickReplies: ['وش الخدمات اللي تخصني؟', 'وش الخدمات اللي أقدر أستفيد منها؟', 'جاني عرض وظيفي وش بيتغير؟'],
+      results: [],
+      changes: [],
+      route: { ...route, intent },
+      scenarioState: scenario,
+      aiMode,
+      aiEnabled: hasAiKey(),
+      routingMeta,
+      simulation: null
+    });
+  }
+
+  const reply = fallbackReply({ route: { ...route, intent }, evaluation, profile, previousState });
+
+  scenario.lastResults = evaluation.results || [];
+  scenario.lastChanges = evaluation.changes || [];
+  const serviceResults = (evaluation.results || []).filter(item => item?.serviceId);
+  const primaryResult = serviceResults[0] || null;
+  const routedIds = (route.targetServiceIds || []).filter(id => serviceById[id]);
+  if (routedIds.length === 1) scenario.lastServiceId = routedIds[0];
+  else if (serviceResults.length === 1) scenario.lastServiceId = serviceResults[0].serviceId;
+  else delete scenario.lastServiceId;
+  if (primaryResult && serviceResults.length === 1) scenario.lastClaim = { serviceId: primaryResult.serviceId || null, title: primaryResult.title || '', body: primaryResult.body || '', why: primaryResult.why || '' };
+  else if (serviceResults.length !== 1) delete scenario.lastClaim;
+
+  const nextReplies = intent === 'current_services'
+    ? ['وش الخدمات اللي أقدر أستفيد منها؟', 'وش تغير في بياناتي؟', 'لو راتبي تغير وش يصير؟']
+    : intent === 'eligible_services'
+      ? ['ليش ظهرت لي هذي الخدمات؟', 'وش الخدمات اللي تخصني حاليا؟', 'لو تغير دخلي وش بيتغير؟']
+      : [];
+
+  return json(res, 200, {
+    reply,
+    quickReplies: nextReplies,
+    results: evaluation.results || [],
+    changes: evaluation.changes || [],
+    route: { ...route, intent },
+    scenarioState: scenario,
+    aiMode,
+    aiEnabled: hasAiKey(),
+    routingMeta,
+    simulation: simulationView(profile, intent, scenario, evaluation)
+  });
+}
+
+function mime(file) {
+  const ext = path.extname(file).toLowerCase();
+  return {
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.svg': 'image/svg+xml',
+    '.png': 'image/png',
+    '.ico': 'image/x-icon'
+  }[ext] || 'application/octet-stream';
+}
+
+function serveStatic(req, res, pathname) {
+  let relative = pathname === '/' ? '/index.html' : pathname;
+  relative = decodeURIComponent(relative);
+  const full = path.normalize(path.join(publicDir, relative));
+  if (!full.startsWith(publicDir)) return text(res, 403, 'Forbidden');
+  if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) return text(res, 404, 'Not found');
+  const content = fs.readFileSync(full);
+  res.writeHead(200, { 'Content-Type': mime(full), 'Content-Length': content.length });
+  res.end(content);
+}
+
+const server = http.createServer(async (req, res) => {
+  try {
+    const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    const pathname = url.pathname;
+
+    if (req.method === 'GET' && pathname === '/api/health') {
+      return json(res, 200, {
+        ok: true,
+        aiEnabled: hasAiKey(),
+        provider: 'Groq',
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
+        services: services.length,
+        routing: 'semantic-frame-state-resolve-rule',
+        groqTimeoutMs: Number(process.env.GROQ_TIMEOUT_MS || 8500)
+      });
+    }
+
+    if (req.method === 'GET' && pathname === '/api/bootstrap') {
+      const profileId = url.searchParams.get('profile') || 'khalid';
+      const profile = personaById[profileId] || personaById.khalid;
+      return json(res, 200, {
+        aiEnabled: hasAiKey(),
+        provider: 'Groq',
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
+        profiles: personas.map(publicProfile),
+        profile: publicProfile(profile),
+        currentServices: currentServices(profile),
+        opportunities: opportunities(profile),
+        changes: changesFor(profile),
+        services: services.map(publicService),
+        benchmarks
+      });
+    }
+
+    if (req.method === 'GET' && pathname.startsWith('/api/profile/')) {
+      const id = pathname.split('/').pop();
+      const profile = personaById[id];
+      if (!profile) return json(res, 404, { error: 'PROFILE_NOT_FOUND' });
+      return json(res, 200, {
+        profile: publicProfile(profile),
+        currentServices: currentServices(profile),
+        opportunities: opportunities(profile),
+        changes: changesFor(profile)
+      });
+    }
+
+    if (req.method === 'GET' && pathname === '/api/services') {
+      return json(res, 200, { services: services.map(publicService) });
+    }
+
+    if (req.method === 'GET' && pathname.startsWith('/api/services/')) {
+      const id = pathname.split('/').pop();
+      const service = serviceById[id];
+      if (!service) return json(res, 404, { error: 'SERVICE_NOT_FOUND' });
+      return json(res, 200, { service: publicService(service) });
+    }
+
+    if (req.method === 'POST' && pathname === '/api/chat') {
+      return await handleChat(req, res);
+    }
+
+    if (req.method === 'GET') return serveStatic(req, res, pathname);
+    return text(res, 405, 'Method not allowed');
+  } catch (error) {
+    console.error(error);
+    return json(res, 500, { error: 'حدث خطأ غير متوقع في الخادم' });
+  }
+});
+
+server.listen(port, () => {
+  console.log(`Silah running on http://localhost:${port}`);
+  console.log(`AI mode: ${hasAiKey() ? 'enabled' : 'fallback demo'}`);
+});
+`````
+
+## `scripts/preflight.js`
+
+`````text
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const ignoredDirs = new Set(['.git', 'node_modules', 'coverage']);
+const ignoredFiles = new Set(['.env']);
+const textExtensions = new Set(['.js', '.json', '.html', '.css', '.md', '.txt', '.yml', '.yaml', '.example', '.gitignore', '.cmd']);
+const problems = [];
+
+function isTextFile(file) {
+  const name = path.basename(file);
+  return textExtensions.has(path.extname(file).toLowerCase()) || ['package.json', '.gitignore', '.env.example'].includes(name);
+}
+
+function walk(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory() && ignoredDirs.has(entry.name)) continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walk(full);
+    else if (!ignoredFiles.has(entry.name) && isTextFile(full)) inspect(full);
+  }
+}
+
+function inspect(file) {
+  const relative = path.relative(root, file);
+  const text = fs.readFileSync(file, 'utf8');
+
+  if (text.includes('\u2014')) problems.push(`${relative}: contains banned long dash U+2014`);
+  if (text.includes('\u2013')) problems.push(`${relative}: contains banned en dash U+2013`);
+
+  const groqKeys = text.match(/gsk_[A-Za-z0-9_-]{20,}/g) || [];
+  for (const key of groqKeys) {
+    if (!/ضع|YOUR|your|example/i.test(key)) problems.push(`${relative}: possible Groq key leak starting with ${key.slice(0, 9)}...`);
+  }
+
+  const openAiKeys = text.match(/sk-[A-Za-z0-9_-]{20,}/g) || [];
+  for (const key of openAiKeys) problems.push(`${relative}: possible secret key leak starting with ${key.slice(0, 7)}...`);
+}
+
+walk(root);
+
+const gitignorePath = path.join(root, '.gitignore');
+if (!fs.existsSync(gitignorePath)) {
+  problems.push('.gitignore is missing');
+} else {
+  const gitignore = fs.readFileSync(gitignorePath, 'utf8');
+  if (!gitignore.split(/\r?\n/).some(line => line.trim() === '.env')) problems.push('.gitignore does not ignore .env');
+}
+
+const envExamplePath = path.join(root, '.env.example');
+if (!fs.existsSync(envExamplePath)) problems.push('.env.example is missing');
+
+if (problems.length) {
+  console.error('\nPreflight failed:\n');
+  problems.forEach(problem => console.error(`  - ${problem}`));
+  process.exit(1);
+}
+
+console.log('Preflight passed: no committed .env target, no obvious API key leak, and no banned dash characters found.');
+`````
+
+## `tests/architecture.test.js`
+
+`````text
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+test('chat server uses one optional semantic AI pass and a deterministic rule response', () => {
+  const server = fs.readFileSync(new URL('../server.js', import.meta.url), 'utf8');
+  assert.ok(server.includes('understandMessage'));
+  assert.ok(server.includes("strategy: 'semantic-frame-state-resolve-rule'"));
+  assert.ok(server.includes('fallbackReply'));
+});
+
+test('AI understanding receives no service catalog candidates', () => {
+  const server = fs.readFileSync(new URL('../server.js', import.meta.url), 'utf8');
+  const ai = fs.readFileSync(new URL('../src/ai.js', import.meta.url), 'utf8');
+  assert.ok(server.includes('const aiCandidates = []'));
+  assert.equal(ai.includes('candidateCatalog'), false);
+  assert.equal(ai.includes('الخدمات المرشحة لهذا السؤال'), false);
+});
+
+test('Groq calls have an abort timeout and no retry loop', () => {
+  const ai = fs.readFileSync(new URL('../src/ai.js', import.meta.url), 'utf8');
+  assert.ok(ai.includes('AbortController'));
+  assert.ok(ai.includes('GROQ_TIMEOUT_MS'));
+  assert.equal(/for\s*\(let attempt/.test(ai), false);
+});
 `````
 
 ## `tests/ai.test.js`
@@ -7238,34 +6429,538 @@ test('Direct request to register in social security is not treated as current en
 });
 `````
 
-## `tests/architecture.test.js`
+## `tests/nlu.test.js`
+
+`````text
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { extractMoney, detectJobStage, extractDeterministicFacts } from '../src/nlu.js';
+import { fallbackRoute } from '../src/ai.js';
+
+const highConfidenceCases = [
+  ['جاني عرض بستة ونص', 6500],
+  ['جاني عرض بـ٦ ونص', 6500],
+  ['جاني عرض ب6.5', 6500],
+  ['جاني عرض بثمانية ونص', 8500],
+  ['راتب الوظيفة 12 ألف', 12000],
+  ['راتب العرض 6500', 6500]
+];
+
+for (const [text, expected] of highConfidenceCases) {
+  test(`extracts salary from: ${text}`, () => {
+    const result = extractMoney(text, { assumeThousands: true });
+    assert.equal(result?.value, expected);
+    assert.equal(result?.needsConfirmation, false);
+  });
+}
+
+test('negated start beats started wording', () => {
+  assert.equal(detectJobStage('وافقت بس للحين ما باشرت'), 'accepted');
+  assert.equal(detectJobStage('باشرت اليوم'), 'started');
+});
+
+test('deterministic facts keep accepted-not-started state with colloquial salary', () => {
+  const facts = extractDeterministicFacts('جاني شغل بستة ونص ووافقت بس للحين ما باشرت', {});
+  assert.equal(facts.intent, 'new_job');
+  assert.equal(facts.jobStage, 'accepted');
+  assert.equal(facts.money?.value, 6500);
+  assert.equal(facts.money?.needsConfirmation, false);
+});
+
+test('pending amount confirmation is resolved by a yes reply without losing intent', () => {
+  const first = fallbackRoute('راتبي بيصير 7', {});
+  const state = {
+    intent: 'income_change',
+    mode: 'what_if',
+    pendingConfirmation: first.pendingConfirmation
+  };
+  const second = fallbackRoute('ايه', state);
+  assert.equal(second.intent, 'income_change');
+  assert.equal(second.income, 7000);
+  assert.equal(second.clearPendingConfirmation, true);
+});
+
+test('named social security question can carry a planned employment end scenario', () => {
+  const route = fallbackRoute('بنفصل من وظيفتي، هل الضمان ممكن يناسبني؟', {});
+  assert.equal(route.intent, 'multi_intent');
+  assert.ok(route.targetServiceIds.includes('social_security'));
+  assert.ok(route.targetServiceIds.includes('employment_end'));
+  assert.equal(route.endStage, 'planned');
+});
+`````
+
+## `tests/retrieval.test.js`
+
+`````text
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { personaById } from '../src/knowledge.js';
+import { retrieveRelevantServices, strongCandidateIds } from '../src/retrieval.js';
+import { fallbackRoute, shouldUseLocalRoute } from '../src/ai.js';
+
+test('service retrieval returns at most five candidates', () => {
+  const items = retrieveRelevantServices({
+    message: 'عندي مشكلة في الوظيفة والراتب والعقد والتدريب والدعم',
+    profile: personaById.khalid,
+    priorityIds: ['social_security', 'employment_contracts', 'doroob', 'career_guidance_sobol', 'job_search_subsidy']
+  });
+  assert.ok(items.length <= 5);
+});
+
+test('childcare wording retrieves Qurra strongly', () => {
+  const items = retrieveRelevantServices({
+    message: 'ابي مساعدة في الحضانة لطفلي',
+    profile: personaById.reem
+  });
+  assert.equal(items[0]?.id, 'qurra');
+  assert.ok(strongCandidateIds(items).includes('qurra'));
+});
+
+test('labor dues wording retrieves labor settlement strongly', () => {
+  const items = retrieveRelevantServices({
+    message: 'الشركة ما عطتني مستحقاتي',
+    profile: personaById.khalid
+  });
+  assert.equal(items[0]?.id, 'labor_settlement');
+  assert.ok(strongCandidateIds(items).includes('labor_settlement'));
+});
+
+test('generic service discovery is handled locally without an AI call', () => {
+  const route = fallbackRoute('وش الخدمات اللي اقدر استفيد منها؟', {});
+  assert.equal(route.intent, 'eligible_services');
+  assert.equal(shouldUseLocalRoute(route, {}), true);
+});
+
+test('clear numeric job offer can be handled locally', () => {
+  const route = fallbackRoute('جاني عرض بـ6500 ووافقت بس ما باشرت', {});
+  assert.equal(route.intent, 'new_job');
+  assert.equal(route.salary, 6500);
+  assert.equal(route.jobStage, 'accepted');
+  assert.equal(shouldUseLocalRoute(route, {}), true);
+});
+
+test('Saudi colloquial half-thousand job salary is extracted locally', () => {
+  const route = fallbackRoute('جاني شغل بستة ونص وقلت لهم اوكي بس للحين ما داومت', {});
+  assert.equal(route.intent, 'new_job');
+  assert.equal(route.jobStage, 'accepted');
+  assert.equal(route.salary, 6500);
+  assert.equal(route.pendingConfirmation, null);
+  assert.equal(shouldUseLocalRoute(route, {}), true);
+});
+
+test('short integer salary is not silently assumed without confirmation', () => {
+  const route = fallbackRoute('راتبي بيصير 7', {});
+  assert.equal(route.intent, 'income_change');
+  assert.equal(route.income, 7000);
+  assert.equal(route.pendingConfirmation?.value, 7000);
+  assert.match(route.pendingConfirmation?.question || '', /7,000/);
+  assert.equal(shouldUseLocalRoute(route, {}), true);
+});
+`````
+
+## `tests/rules.test.js`
+
+`````text
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { personaById } from '../src/knowledge.js';
+import {
+  currentServices,
+  opportunities,
+  analyzeIncome,
+  analyzeNewJob,
+  analyzeEmploymentEnd,
+  laborDispute,
+  evaluateIntent,
+  evaluateSpecificServices
+} from '../src/rules.js';
+
+const khalid = personaById.khalid;
+const reem = personaById.reem;
+const salman = personaById.salman;
+const noura = personaById.noura;
+const saleh = personaById.saleh;
+
+function titles(result) {
+  return (result.results || result).map(item => item.title).join(' | ');
+}
+
+function serviceIds(result) {
+  return (result.results || result).map(item => item.serviceId).filter(Boolean);
+}
+
+test('Khalid current profile is linked to social security and employment contracts', () => {
+  const ids = serviceIds(currentServices(khalid));
+  assert.ok(ids.includes('social_security'));
+  assert.ok(ids.includes('employment_contracts'));
+});
+
+test('Khalid opportunities include domestic worker contract documentation', () => {
+  const ids = serviceIds(opportunities(khalid));
+  assert.ok(ids.includes('domestic_worker_contract_documentation'));
+});
+
+test('Income decrease for Khalid does not frame the change as loss of eligibility', () => {
+  const result = analyzeIncome(khalid, 4000, 'future');
+  const text = titles(result) + JSON.stringify(result.results);
+  assert.match(text, /مبلغ المعاش/);
+  assert.doesNotMatch(text, /فقدان الأهلية|تفقد الأهلية/);
+});
+
+test('Income increase for Khalid warns that pension amount or entitlement can be affected', () => {
+  const result = analyzeIncome(khalid, 7000, 'future');
+  const text = titles(result);
+  assert.match(text, /مبلغ المعاش|الاستحقاق/);
+});
+
+test('Actual income change for a current social security beneficiary includes reporting notice', () => {
+  const result = analyzeIncome(khalid, 7000, 'current');
+  assert.ok(result.results.some(item => item.type === 'action' && /15/.test(item.body)));
+});
+
+test('Income decrease for Reem does not invent social security eligibility from salary alone', () => {
+  const result = analyzeIncome(reem, 4000, 'future');
+  const text = JSON.stringify(result.results);
+  assert.match(text, /لا يكفي وحده|ما نحول/);
+  assert.doesNotMatch(text, /مؤهل|مستحقة/);
+});
+
+test('New job for Khalid asks whether it replaces the current job when current contract is active', () => {
+  const result = analyzeNewJob(khalid, {
+    jobStage: 'accepted',
+    salary: 6500,
+    replacesCurrentJob: null
+  });
+  assert.equal(result.needsClarification, true);
+  assert.match(result.question, /بديلة|الحالي/);
+});
+
+test('Accepted job offer for Khalid is future impact and not treated as started income', () => {
+  const result = analyzeNewJob(khalid, {
+    jobStage: 'accepted',
+    salary: 6500,
+    replacesCurrentJob: true
+  });
+  const text = JSON.stringify(result.results);
+  assert.match(text, /لم يبدأ|عند بدء|إذا بدأ/);
+  assert.doesNotMatch(text, /بدأ الدخل الجديد بقيمة/);
+});
+
+test('Started job for Salman changes employment state only after starting', () => {
+  const result = analyzeNewJob(salman, {
+    jobStage: 'started',
+    salary: 4500,
+    replacesCurrentJob: null
+  });
+  assert.match(JSON.stringify(result.results), /الحالة الوظيفية تغيرت/);
+});
+
+test('Employment end journey stops early for Salman when there is no active contract', () => {
+  const result = analyzeEmploymentEnd(salman, {
+    endStage: 'planned',
+    endReason: 'fixed_expiry'
+  });
+  assert.equal(result.needsClarification, false);
+  assert.match(titles(result), /لا يوجد عقد فعال/);
+});
+
+test('Resignation excludes SANED path', () => {
+  const result = analyzeEmploymentEnd(khalid, {
+    endStage: 'ended',
+    endReason: 'resignation'
+  });
+  const text = JSON.stringify(result.results);
+  assert.match(text, /لا نظهر ساند/);
+});
+
+test('Fixed term expiry can surface SANED only as a path worth checking', () => {
+  const result = analyzeEmploymentEnd(khalid, {
+    endStage: 'ended',
+    endReason: 'fixed_expiry'
+  });
+  const saned = result.results.find(item => /ساند/.test(item.title));
+  assert.ok(saned);
+  assert.match(saned.tag, /يستحق التحقق/);
+  assert.doesNotMatch(saned.title + saned.body, /مؤهل|مستحق مؤكدا/);
+});
+
+test('Noura opportunities include disability aid and traffic facilities', () => {
+  const ids = serviceIds(opportunities(noura));
+  assert.ok(ids.includes('disability_financial_aid'));
+  assert.ok(ids.includes('traffic_facilities_certificate'));
+});
+
+test('Saleh gets the senior privilege card from age and nationality data', () => {
+  const ids = serviceIds(opportunities(saleh));
+  assert.ok(ids.includes('senior_privilege_card'));
+});
+
+test('Reem does not get social security automatically from current profile', () => {
+  const ids = serviceIds(opportunities(reem));
+  assert.equal(ids.includes('social_security'), false);
+});
+
+test('Labor dispute routes to friendly settlement service', () => {
+  const result = laborDispute(khalid, 'ما عطوني مستحقاتي');
+  assert.ok(serviceIds(result).includes('labor_settlement'));
+});
+
+test('Current services intent returns current services plus relevant opportunities', () => {
+  const result = evaluateIntent(khalid, 'current_services', {});
+  const ids = serviceIds(result);
+  assert.ok(ids.includes('social_security'));
+  assert.ok(ids.includes('employment_contracts'));
+  assert.ok(ids.includes('domestic_worker_contract_documentation'));
+});
+
+test('Salman gets job seeker programs as opportunities without being declared officially eligible', () => {
+  const items = opportunities(salman);
+  const ids = serviceIds(items);
+  assert.ok(ids.includes('job_search_subsidy'));
+  assert.ok(ids.includes('tamheer'));
+  assert.ok(ids.includes('doroob'));
+  assert.ok(ids.includes('career_guidance_sobol'));
+  const text = JSON.stringify(items);
+  assert.doesNotMatch(text, /مؤهل نهائيا|مستحق نهائيا/);
+});
+
+test('Saleh senior privilege result does not claim that the card was issued when issuance state is unknown', () => {
+  const item = opportunities(saleh).find(result => result.serviceId === 'senior_privilege_card');
+  assert.ok(item);
+  assert.match(item.body, /لا يحتوي تأكيدا|لم.*تأكيدا|لا.*تأكيدا/);
+  assert.ok(item.unknowns?.some(value => /إصدار/.test(value)));
+});
+
+test('Reem income drop can unlock Qura and Wusool in the hypothetical scenario', () => {
+  const result = analyzeIncome(reem, 4000, 'future');
+  const ids = serviceIds(result);
+  assert.ok(ids.includes('qurra'));
+  assert.ok(ids.includes('wusool'));
+  const qura = result.results.find(item => item.serviceId === 'qurra');
+  assert.match(qura.tag, /بسبب هذا التغيير/);
+});
+
+
+test('Reem can ask about social security even when she is not a current beneficiary', () => {
+  const [item] = evaluateSpecificServices(reem, ['social_security'], {});
+  const text = JSON.stringify(item);
+  assert.match(text, /عدم استفادتك الحالية لا يمنع|التقديم عليه/);
+  assert.doesNotMatch(text, /لا يمكن التسجيل|غير متاح للتسجيل/);
+  assert.equal(item.relationship.current, 'not_current_beneficiary');
+  assert.equal(item.relationship.eligibility, 'not_assessed');
+});
+
+test('Reem planned employment end makes social security a future relevance check, not a current entitlement', () => {
+  const [item] = evaluateSpecificServices(reem, ['social_security'], { endStage: 'planned' });
+  assert.equal(item.relationship.relevance, 'potential_future');
+  assert.equal(item.relationship.eligibility, 'not_assessed');
+  assert.match(item.title + item.body, /إذا تغير دخلك فعليا|انتهاء العلاقة الوظيفية/);
+  assert.doesNotMatch(item.title + item.body, /مؤهل|مستحقة/);
+});
+
+test('Non enrollment never becomes automatic service unavailability for direct assessments', () => {
+  const ids = ['social_security', 'tamheer', 'qurra', 'wusool', 'career_guidance_sobol'];
+  const items = evaluateSpecificServices(reem, ids, {});
+  for (const item of items) {
+    assert.doesNotMatch(JSON.stringify(item), /غير مسجل.*لذا لا يمكن|لا توجد خدمة.*لذا لا يمكن التسجيل/);
+  }
+});
+
+test('Reem current wage explains why Wusool is not a preliminary match without blaming enrollment', () => {
+  const [item] = evaluateSpecificServices(reem, ['wusool'], {});
+  assert.match(item.body, /8500|يتجاوز الحد المنشور 8000/);
+  assert.equal(item.relationship.eligibility, 'known_rule_not_met_currently');
+});
+
+test('A younger persona gets a known current condition mismatch for senior privilege card', () => {
+  const [item] = evaluateSpecificServices(reem, ['senior_privilege_card'], {});
+  assert.equal(item.relationship.eligibility, 'known_rule_not_met_currently');
+  assert.match(item.body, /27/);
+});
+`````
+
+## `tests/gold100.test.js`
 
 `````text
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { fallbackRoute } from '../src/ai.js';
 
-test('chat server uses one optional semantic AI pass and a deterministic rule response', () => {
-  const server = fs.readFileSync(new URL('../server.js', import.meta.url), 'utf8');
-  assert.ok(server.includes('understandMessage'));
-  assert.ok(server.includes("strategy: 'semantic-frame-state-resolve-rule'"));
-  assert.ok(server.includes('fallbackReply'));
+const cases = JSON.parse(fs.readFileSync(new URL('./gold100.json', import.meta.url), 'utf8'));
+function actualValue(route, key) {
+  if (key === 'targetServiceId') return route.targetServiceIds?.[0];
+  if (key === 'targetServiceIds') return route.targetServiceIds || [];
+  if (key === 'needsConfirmation') return Boolean(route.pendingConfirmation);
+  if (key === 'started') return route.started ?? (route.jobStage === 'started' ? true : route.jobStage !== 'unknown' ? false : null);
+  if (key === 'accepted') return route.accepted ?? (route.jobStage === 'accepted' ? true : ['reviewing','rejected'].includes(route.jobStage) ? false : null);
+  if (key === 'ended') return route.ended ?? (route.intent === 'employment_end_negated' ? false : route.endStage === 'ended' ? true : null);
+  return route[key];
+}
+function includesEq(actual, expected) {
+  if (Array.isArray(expected)) return Array.isArray(actual) && expected.every(item => actual.includes(item));
+  return actual === expected;
+}
+
+for (const c of cases) {
+  test(`#${c.id} ${c.message}`, () => {
+    const route = fallbackRoute(c.message, c.previousState || {});
+    const failures = [];
+    for (const [key, expected] of Object.entries(c.expected)) {
+      if (['requiresClarification','expectedEligibility','forbidConclusion','incomeSource'].includes(key)) {
+        if (key === 'requiresClarification' && route.requiresClarification !== expected) failures.push(`${key}: ${route.requiresClarification} != ${expected}`);
+        if (key === 'incomeSource' && route.incomeSource !== expected) failures.push(`${key}: ${route.incomeSource} != ${expected}`);
+        continue;
+      }
+      const actual = actualValue(route, key);
+      if (!includesEq(actual, expected)) failures.push(`${key}: ${JSON.stringify(actual)} != ${JSON.stringify(expected)}`);
+    }
+    assert.deepEqual(failures, []);
+  });
+}
+`````
+
+## `tests/ui.test.js`
+
+`````text
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { services, benchmarks } from '../src/knowledge.js';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const app = fs.readFileSync(path.join(root, 'public', 'app.js'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+
+test('Profile UI does not expose negative social security enrollment as a profile chip', () => {
+  assert.doesNotMatch(app, /غير مسجل كمستفيد ضمان في النموذج/);
 });
 
-test('AI understanding receives no service catalog candidates', () => {
-  const server = fs.readFileSync(new URL('../server.js', import.meta.url), 'utf8');
-  const ai = fs.readFileSync(new URL('../src/ai.js', import.meta.url), 'utf8');
-  assert.ok(server.includes('const aiCandidates = []'));
-  assert.equal(ai.includes('candidateCatalog'), false);
-  assert.equal(ai.includes('الخدمات المرشحة لهذا السؤال'), false);
+test('Expected impact section is present in the main navigation and page', () => {
+  assert.match(html, /data-scroll="impact"/);
+  assert.match(html, /id="impact"/);
+  assert.match(html, /الأثر المتوقع/);
 });
 
-test('Groq calls have an abort timeout and no retry loop', () => {
-  const ai = fs.readFileSync(new URL('../src/ai.js', import.meta.url), 'utf8');
-  assert.ok(ai.includes('AbortController'));
-  assert.ok(ai.includes('GROQ_TIMEOUT_MS'));
-  assert.equal(/for\s*\(let attempt/.test(ai), false);
+test('Service library is compact by default and supports on demand details', () => {
+  assert.equal(services.length, 18);
+  assert.match(html, /id="serviceModal"/);
+  assert.match(html, /id="serviceExpand"/);
+  assert.match(app, /slice\(0, 8\)/);
 });
+
+test('Benchmark includes five researched experiences and a capability matrix', () => {
+  assert.equal(benchmarks.length, 5);
+  assert.match(html, /id="benchmarkMatrix"/);
+  assert.match(app, /خريطة القدرات/);
+});
+
+
+test('Chat keeps the reading position stable when new messages arrive', () => {
+  const css = fs.readFileSync(path.join(root, 'public', 'styles.css'), 'utf8');
+  assert.match(css, /overflow-anchor:none/);
+  assert.doesNotMatch(app, /messages\.scrollTop\s*=\s*messages\.scrollHeight/);
+  assert.doesNotMatch(app, /scrollMessages\(/);
+  assert.match(app, /focus\(\{ preventScroll: true \}\)/);
+});
+
+test('Executive demo supports a clean conversation reset without changing persona', () => {
+  assert.match(html, /id="resetChatButton"/);
+  assert.match(app, /function startNewConversation\(\)/);
+  assert.match(app, /state\.history = \[\]/);
+  assert.match(app, /state\.scenarioState = \{\}/);
+  assert.match(app, /resetChat\(state\.bootstrap\.profile\)/);
+});
+
+test('Digital Twin has an accessible on demand explanation', () => {
+  const css = fs.readFileSync(path.join(root, 'public', 'styles.css'), 'utf8');
+  assert.match(html, /aria-label="شرح توأم الحالة"/);
+  assert.match(html, /وش يعني Digital Twin في صلة؟/);
+  assert.match(css, /\.info-popover:hover \.info-panel/);
+  assert.match(css, /\.info-popover:focus-within \.info-panel/);
+});
+
+test('Benchmark keeps deep research behind clickable cards', () => {
+  assert.match(html, /id="benchmarkModal"/);
+  assert.match(app, /data-benchmark-id/);
+  assert.match(app, /المشكلة اللي كانوا يحلونها/);
+  assert.match(app, /ليش بنوا الحل/);
+  assert.match(app, /وش بنوا فعليا/);
+  assert.match(app, /كيف تمشي الرحلة/);
+  assert.match(app, /كيف اشتغل التكامل/);
+  assert.match(app, /وش البيانات المستخدمة/);
+  assert.match(app, /التحديات والقيود/);
+  assert.match(app, /وش طبقناه فعليا في صلة/);
+});
+
+test('Impact model is explicit about assumptions and supports sensitivity rates', () => {
+  assert.match(html, /سيناريو أثر، وليس Forecast/);
+  assert.match(html, /data-impact-rate="0\.03"/);
+  assert.match(html, /data-impact-rate="0\.05"/);
+  assert.match(html, /data-impact-rate="0\.10"/);
+  assert.match(app, /const quarterlyCalls = 526945/);
+  assert.match(app, /const minutesPerCall = 6/);
+});
+
+test('Long evidence sections use progressive disclosure to reduce page length', () => {
+  assert.match(html, /class="impact-method-details"/);
+  assert.match(html, /class="benchmark-matrix-details"/);
+  assert.match(html, /class="benchmark-insights-details"/);
+});
+
+
+test('Every benchmark has executive research layers and official sources', () => {
+  for (const item of benchmarks) {
+    for (const key of ['problem', 'whyBuilt', 'journey', 'design', 'integration', 'dataUsed', 'results', 'challenges', 'lessons', 'appliedToSilah']) {
+      assert.ok(item[key], `${item.id} missing ${key}`);
+      if (Array.isArray(item[key])) assert.ok(item[key].length > 0, `${item.id} empty ${key}`);
+    }
+    assert.ok(item.sources?.length > 0, `${item.id} missing sources`);
+  }
+});
+
+test('Impact baseline is Q2 2026 and matches the documented call volume', () => {
+  assert.match(html, /الربع الثاني 2026/);
+  assert.match(html, /757,960/);
+  assert.match(html, /526,945/);
+  assert.match(html, /58,661/);
+  assert.match(html, /172,354/);
+});
+`````
+
+## `tests/run100_http.mjs`
+
+`````text
+import fs from 'node:fs';
+const base=process.env.SILAH_URL || 'http://localhost:3000';
+const cases=JSON.parse(fs.readFileSync(new URL('./gold100.json', import.meta.url),'utf8'));
+function val(data,key){
+ if(key==='targetServiceId') return data.route?.targetServiceIds?.[0];
+ if(key==='targetServiceIds') return data.route?.targetServiceIds||[];
+ if(key==='needsConfirmation') return !!data.route?.pendingConfirmation;
+ if(key==='started') return data.route?.started ?? (data.route?.jobStage==='started'?true:data.route?.jobStage!=='unknown'?false:null);
+ if(key==='accepted') return data.route?.accepted ?? (data.route?.jobStage==='accepted'?true:['reviewing','rejected'].includes(data.route?.jobStage)?false:null);
+ if(key==='ended') return data.route?.ended ?? (data.route?.intent==='employment_end_negated'?false:data.route?.endStage==='ended'?true:null);
+ return data.route?.[key];
+}
+function eq(a,e){return Array.isArray(e)?Array.isArray(a)&&e.every(x=>a.includes(x)):a===e}
+let pass=0; const fails=[]; const rows=[];
+for(const c of cases){
+ const r=await fetch(base+'/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({message:c.message,profileId:c.persona,history:[],scenarioState:c.previousState||{}})});
+ const data=await r.json(); const f=[];
+ for(const [k,e] of Object.entries(c.expected)){
+  if(['expectedEligibility','forbidConclusion'].includes(k)) continue;
+  const a = k==='requiresClarification'?data.route?.requiresClarification:k==='incomeSource'?data.route?.incomeSource:val(data,k);
+  if(!eq(a,e)) f.push(`${k}: ${JSON.stringify(a)} != ${JSON.stringify(e)}`);
+ }
+ if(!f.length) pass++; else fails.push({id:c.id,message:c.message,f,reply:data.reply,route:data.route});
+ rows.push({id:c.id,reply:data.reply,aiMode:data.aiMode,aiCalls:data.routingMeta?.aiCalls||0});
+}
+console.log(JSON.stringify({pass,fail:cases.length-pass,rate:pass},null,2));
+if(fails.length){console.log(JSON.stringify(fails.slice(0,20),null,2));process.exitCode=1}
+fs.writeFileSync(new URL('./http100_results.json',import.meta.url),JSON.stringify(rows,null,2),'utf8');
 `````
 
 ## `tests/gold100.json`
@@ -8507,47 +8202,6 @@ test('Groq calls have an abort timeout and no retry loop', () => {
     }
   }
 ]
-`````
-
-## `tests/gold100.test.js`
-
-`````text
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import { fallbackRoute } from '../src/ai.js';
-
-const cases = JSON.parse(fs.readFileSync(new URL('./gold100.json', import.meta.url), 'utf8'));
-function actualValue(route, key) {
-  if (key === 'targetServiceId') return route.targetServiceIds?.[0];
-  if (key === 'targetServiceIds') return route.targetServiceIds || [];
-  if (key === 'needsConfirmation') return Boolean(route.pendingConfirmation);
-  if (key === 'started') return route.started ?? (route.jobStage === 'started' ? true : route.jobStage !== 'unknown' ? false : null);
-  if (key === 'accepted') return route.accepted ?? (route.jobStage === 'accepted' ? true : ['reviewing','rejected'].includes(route.jobStage) ? false : null);
-  if (key === 'ended') return route.ended ?? (route.intent === 'employment_end_negated' ? false : route.endStage === 'ended' ? true : null);
-  return route[key];
-}
-function includesEq(actual, expected) {
-  if (Array.isArray(expected)) return Array.isArray(actual) && expected.every(item => actual.includes(item));
-  return actual === expected;
-}
-
-for (const c of cases) {
-  test(`#${c.id} ${c.message}`, () => {
-    const route = fallbackRoute(c.message, c.previousState || {});
-    const failures = [];
-    for (const [key, expected] of Object.entries(c.expected)) {
-      if (['requiresClarification','expectedEligibility','forbidConclusion','incomeSource'].includes(key)) {
-        if (key === 'requiresClarification' && route.requiresClarification !== expected) failures.push(`${key}: ${route.requiresClarification} != ${expected}`);
-        if (key === 'incomeSource' && route.incomeSource !== expected) failures.push(`${key}: ${route.incomeSource} != ${expected}`);
-        continue;
-      }
-      const actual = actualValue(route, key);
-      if (!includesEq(actual, expected)) failures.push(`${key}: ${JSON.stringify(actual)} != ${JSON.stringify(expected)}`);
-    }
-    assert.deepEqual(failures, []);
-  });
-}
 `````
 
 ## `tests/gold100_legacy.json`
@@ -10382,472 +10036,1070 @@ for (const c of cases) {
 ]
 `````
 
-## `tests/nlu.test.js`
+## `docs/LOGIC_MODEL.md`
 
 `````text
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { extractMoney, detectJobStage, extractDeterministicFacts } from '../src/nlu.js';
-import { fallbackRoute } from '../src/ai.js';
+# نموذج المنطق في صلة
 
-const highConfidenceCases = [
-  ['جاني عرض بستة ونص', 6500],
-  ['جاني عرض بـ٦ ونص', 6500],
-  ['جاني عرض ب6.5', 6500],
-  ['جاني عرض بثمانية ونص', 8500],
-  ['راتب الوظيفة 12 ألف', 12000],
-  ['راتب العرض 6500', 6500]
-];
+## 1. حالة الخدمة ليست قيمة واحدة
 
-for (const [text, expected] of highConfidenceCases) {
-  test(`extracts salary from: ${text}`, () => {
-    const result = extractMoney(text, { assumeThousands: true });
-    assert.equal(result?.value, expected);
-    assert.equal(result?.needsConfirmation, false);
-  });
-}
+لكل خدمة أربع زوايا مستقلة:
 
-test('negated start beats started wording', () => {
-  assert.equal(detectJobStage('وافقت بس للحين ما باشرت'), 'accepted');
-  assert.equal(detectJobStage('باشرت اليوم'), 'started');
-});
+- `current`: هل المستفيد يستخدم الخدمة حاليا
+- `availability`: هل التقديم أو استخدام الخدمة متاح من حيث المبدأ
+- `eligibility`: هل نعرف نتيجة أهلية فعلية أم لا
+- `relevance`: هل الخدمة مرتبطة بالحالة الحالية أو السؤال أو حدث مستقبلي
 
-test('deterministic facts keep accepted-not-started state with colloquial salary', () => {
-  const facts = extractDeterministicFacts('جاني شغل بستة ونص ووافقت بس للحين ما باشرت', {});
-  assert.equal(facts.intent, 'new_job');
-  assert.equal(facts.jobStage, 'accepted');
-  assert.equal(facts.money?.value, 6500);
-  assert.equal(facts.money?.needsConfirmation, false);
-});
+هذا يمنع الاستنتاج الخاطئ:
 
-test('pending amount confirmation is resolved by a yes reply without losing intent', () => {
-  const first = fallbackRoute('راتبي بيصير 7', {});
-  const state = {
-    intent: 'income_change',
-    mode: 'what_if',
-    pendingConfirmation: first.pendingConfirmation
-  };
-  const second = fallbackRoute('ايه', state);
-  assert.equal(second.intent, 'income_change');
-  assert.equal(second.income, 7000);
-  assert.equal(second.clearPendingConfirmation, true);
-});
+```text
+غير مستفيد حاليا = لا يمكن التقديم
+```
 
-test('named social security question can carry a planned employment end scenario', () => {
-  const route = fallbackRoute('بنفصل من وظيفتي، هل الضمان ممكن يناسبني؟', {});
-  assert.equal(route.intent, 'multi_intent');
-  assert.ok(route.targetServiceIds.includes('social_security'));
-  assert.ok(route.targetServiceIds.includes('employment_end'));
-  assert.equal(route.endStage, 'planned');
-});
+## 2. الحقيقة غير البلاغ غير الافتراض
+
+صلة يميز بين:
+
+- `current`: معلومة حالية من المصدر
+- `reported`: تغيير يقول المستفيد إنه حدث فعلا لكنه قد لا يكون انعكس في المصدر
+- `what_if`: سيناريو افتراضي لم يحدث
+
+في الوظيفة الجديدة مثلا:
+
+```text
+وصلني العرض
+وافقت من جهتي
+تم توثيق العقد
+بدأت العمل
+```
+
+كل مرحلة لها أثر مختلف.
+
+## 3. Query Refinement قبل النموذج
+
+قبل Groq، `src/nlu.js` يحاول استخراج الحقائق التي لا تحتاج تخمينا:
+
+- أرقام مكتوبة بالعربية أو الإنجليزية
+- تعبيرات راتب عامية مثل `ستة ونص`
+- مرحلة العقد أو الوظيفة
+- النفي مثل `ما باشرت`
+- هل الوظيفة بديلة عن الحالية
+- مرحلة انتهاء العلاقة وسببها إن كان صريحا
+- أسماء خدمات ومرادفات شائعة
+
+الحقيقة المحلية عالية الثقة لا يسمح للنموذج أن يناقضها.
+
+## 4. Session Slots
+
+صلة يحتفظ بالمتغيرات المؤثرة خلال المحادثة، مثل:
+
+```text
+salary
+income
+jobStage
+replacesCurrentJob
+endStage
+endReason
+targetServiceIds
+```
+
+إذا كانت المعلومة موجودة في الرسالة السابقة أو ملف المستفيد فلا يعيد السؤال عنها.
+
+## 5. الذكاء الاصطناعي يفهم اللغة فقط
+
+إذا كان السؤال واضحا من القواعد المحلية، لا يتم استدعاء Groq.
+
+إذا احتاج السؤال فهما لغويا أوسع:
+
+1. ننقح الرسالة ونستخرج الحقائق الحتمية
+2. `src/retrieval.js` يبحث محليا في كتالوج الخدمات عند الحاجة
+3. أحداث مثل وظيفة جديدة أو تغير دخل ترسل صفر خدمات للـAI
+4. أسئلة الخدمة الغامضة ترسل عادة 1 إلى 3 خدمات فقط
+5. Groq يعيد Intent وEntities وMode
+6. نعيد تطبيق الحقائق المحلية فوق النتيجة
+7. `src/rules.js` يصدر النتيجة
+8. الرد النهائي يبنى محليا من حقائق النتيجة
+
+لا يوجد طلب AI ثان لصياغة الرد.
+
+## 6. الاسترجاع ليس قرار أهلية
+
+ترشيح خدمة لطبقة الفهم لا يعني أن المستفيد مؤهل لها.
+
+الاسترجاع يعتمد على:
+
+- اسم الخدمة أو المرادف
+- Trigger Signals
+- كلمات السؤال
+- المجال
+- سياق المحادثة
+- ارتباط أولي ببيانات المستفيد
+
+ثم يظل محرك القواعد هو صاحب قرار الارتباط والتقييم الأولي.
+
+## 7. Clarification بدل التخمين
+
+إذا بقيت معلومة واحدة مؤثرة غير محسومة، نسأل عنها فقط.
+
+مثال:
+
+```text
+جاني شغل بستة ونص ووافقت بس ما باشرت
+```
+
+نعرف:
+
+```text
+salary = 6500
+jobStage = accepted
+started = false
+```
+
+إذا كان وضع الوظيفة الحالية هو المتغير الوحيد الذي يغير النتيجة، نسأل عنه ولا نعيد سؤال الراتب.
+
+أما:
+
+```text
+راتبي بيصير 7
+```
+
+فنطلب تأكيد 7000 لأن التعبير المختصر يحتمل اللبس.
+
+## 8. قاموس لغة مستقل
+
+`data/language_glossary.json` يربط ما يقوله المستفيد بالمصطلح الرسمي.
+
+هذا يسمح بدعم تعبيرات مثل:
+
+```text
+حافز
+الضمان
+ستة ونص
+ما باشرت
+بديلة عن وظيفتي
+```
+
+بدون تلويث قواعد الأهلية أو كتابة فرع محادثة يدوي لكل جملة.
+
+## 9. Validation
+
+بعد فهم الرسالة نطبق فحوص اتساق قبل القواعد.
+
+مثال:
+
+```text
+وافقت بس ما باشرت
+```
+
+لا يمكن أن تنتهي داخليا كـ`started` حتى لو أخطأ النموذج في التصنيف.
+
+## 10. لا تعليق عند تعطل مزود اللغة
+
+كل طلب Groq لديه Timeout صريح.
+
+إذا حصل Timeout أو Rate Limit أو خطأ شبكة:
+
+- لا نعيد المحاولة عدة مرات
+- نرجع إلى المسار المحلي
+- إذا وجد الاسترجاع تطابقا قويا ومباشرا يمكن ربط السؤال بالخدمة بأمان
+- وإلا صلة يطلب توضيحا بدل التخمين
+
+## 11. سؤال الخدمة المباشر
+
+إذا سأل المستخدم عن خدمة بالاسم، صلة يفحص الخدمة حتى لو لم يكن مشتركا فيها حاليا.
+
+مثال:
+
+```text
+هل الضمان ممكن يناسبني؟
+```
+
+لا نحول عدم الاستفادة الحالية إلى رفض.
+
+## 12. توأم الحالة
+
+`What If` لا يعدل الملف الحالي. صلة ينشئ حالة افتراضية ويشغل عليها نفس القواعد ثم يعرض الفرق.
 `````
 
-## `tests/retrieval.test.js`
+## `docs/CHAT_ENGINE.md`
 
 `````text
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { personaById } from '../src/knowledge.js';
-import { retrieveRelevantServices, strongCandidateIds } from '../src/retrieval.js';
-import { fallbackRoute, shouldUseLocalRoute } from '../src/ai.js';
+# محرك المحادثة في صلة V6
 
-test('service retrieval returns at most five candidates', () => {
-  const items = retrieveRelevantServices({
-    message: 'عندي مشكلة في الوظيفة والراتب والعقد والتدريب والدعم',
-    profile: personaById.khalid,
-    priorityIds: ['social_security', 'employment_contracts', 'doroob', 'career_guidance_sobol', 'job_search_subsidy']
-  });
-  assert.ok(items.length <= 5);
-});
+هذه النسخة لا تعتمد على LLM كصندوق أسود. المحادثة تمر بمراحل مستقلة حتى نحافظ على الدقة ونقلل زمن الانتظار والهبد.
 
-test('childcare wording retrieves Qurra strongly', () => {
-  const items = retrieveRelevantServices({
-    message: 'ابي مساعدة في الحضانة لطفلي',
-    profile: personaById.reem
-  });
-  assert.equal(items[0]?.id, 'qurra');
-  assert.ok(strongCandidateIds(items).includes('qurra'));
-});
 
-test('labor dues wording retrieves labor settlement strongly', () => {
-  const items = retrieveRelevantServices({
-    message: 'الشركة ما عطتني مستحقاتي',
-    profile: personaById.khalid
-  });
-  assert.equal(items[0]?.id, 'labor_settlement');
-  assert.ok(strongCandidateIds(items).includes('labor_settlement'));
-});
+## V6: Semantic Frame
 
-test('generic service discovery is handled locally without an AI call', () => {
-  const route = fallbackRoute('وش الخدمات اللي اقدر استفيد منها؟', {});
-  assert.equal(route.intent, 'eligible_services');
-  assert.equal(shouldUseLocalRoute(route, {}), true);
-});
+الفرق الأساسي في V6 أن مرحلة الفهم لا تتعامل مع الرسالة كـIntent واحد فقط. يتم استخراج حقائق مستقلة يمكن للقواعد الاعتماد عليها:
 
-test('clear numeric job offer can be handled locally', () => {
-  const route = fallbackRoute('جاني عرض بـ6500 ووافقت بس ما باشرت', {});
-  assert.equal(route.intent, 'new_job');
-  assert.equal(route.salary, 6500);
-  assert.equal(route.jobStage, 'accepted');
-  assert.equal(shouldUseLocalRoute(route, {}), true);
-});
+```json
+{
+  "intent": "new_job",
+  "mode": "reported",
+  "jobStage": "reviewing",
+  "salary": 6500,
+  "accepted": false,
+  "started": false
+}
+```
 
-test('Saudi colloquial half-thousand job salary is extracted locally', () => {
-  const route = fallbackRoute('جاني شغل بستة ونص وقلت لهم اوكي بس للحين ما داومت', {});
-  assert.equal(route.intent, 'new_job');
-  assert.equal(route.jobStage, 'accepted');
-  assert.equal(route.salary, 6500);
-  assert.equal(route.pendingConfirmation, null);
-  assert.equal(shouldUseLocalRoute(route, {}), true);
-});
+كما يفصل المبلغ النهائي عن مقدار التغيير. لذلك `راتبي انخفض 500 ريال` يمثل `delta=-500`، بينما `راتبي صار 5000` يمثل قيمة نهائية.
 
-test('short integer salary is not silently assumed without confirmation', () => {
-  const route = fallbackRoute('راتبي بيصير 7', {});
-  assert.equal(route.intent, 'income_change');
-  assert.equal(route.income, 7000);
-  assert.equal(route.pendingConfirmation?.value, 7000);
-  assert.match(route.pendingConfirmation?.question || '', /7,000/);
-  assert.equal(shouldUseLocalRoute(route, {}), true);
-});
+حالة المحادثة تحتفظ بآخر خدمة ونتيجة وادعاء مهم. هذا يسمح لأسئلة المتابعة مثل `ليش؟` و`تنطبق علي؟` و`أقدر أقدم عليه؟` بالرجوع للمرجع الصحيح بدون إعادة تفسير الرحلة من الصفر.
+
+Gold Set المرفق في `tests/gold100.json` يغطي 100 صياغة واقعية، ويعمل كاختبار Regression دائم لأي تعديل على المحرك.
+
+## المسار
+
+```text
+رسالة المستفيد
+  ↓
+1. Query Refinement محلي
+  ↓
+2. استخراج الحقائق الواضحة
+  ↓
+3. فحص سياق الجلسة والـSlots السابقة
+  ↓
+4. استرجاع خدمات محدود عند الحاجة فقط
+  ↓
+5. Groq مرة واحدة فقط إذا بقي غموض لغوي
+  ↓
+6. دمج الحقائق الحتمية فوق نتيجة النموذج
+  ↓
+7. Slot Filling وسؤال معلومة واحدة مؤثرة إذا كانت ناقصة
+  ↓
+8. Rules Engine
+  ↓
+9. رد مبني من القواعد والمصادر
+```
+
+## 1. Query Refinement
+
+قبل الاتصال بالـAI، صلة ينظف الرسالة ويفهم أشياء يمكن استخراجها بدون نموذج لغوي:
+
+- الأرقام العربية والإنجليزية
+- الصياغات العامية مثل `ستة ونص`
+- مرحلة الوظيفة مثل `وافقت` أو `باشرت`
+- النفي مثل `ما باشرت`
+- هل الوظيفة بديلة عن الحالية
+- بعض الأحداث الواضحة مثل الاستقالة أو انتهاء العقد
+- أسماء الخدمات والمصطلحات الشائعة
+
+هذه المرحلة تمنع فقد معلومة صريحة قالها المستفيد.
+
+مثال:
+
+```text
+جاني شغل بستة ونص ووافقت بس للحين ما باشرت
+```
+
+تتحول محليا إلى:
+
+```json
+{
+  "intent": "new_job",
+  "salary": 6500,
+  "jobStage": "accepted",
+  "started": false
+}
+```
+
+## 2. Confidence قبل الافتراض
+
+صلة لا يحول كل رقم قصير إلى آلاف بدون تأكيد.
+
+```text
+راتبي بيصير 7
+```
+
+يستنتج احتمال 7000 لكنه يسأل:
+
+```text
+تقصد 7,000 ريال؟
+```
+
+أما:
+
+```text
+جاني شغل بستة ونص
+```
+
+فالسياق والصياغة يعطيان ثقة أعلى ويقرأها 6500 بدون إعادة سؤال الراتب.
+
+## 3. Session Slots
+
+صلة يحتفظ بالمتغيرات المهمة في السيناريو بدل محاولة استنتاج كل شيء من آخر رسالة فقط.
+
+أمثلة Slots:
+
+- salary
+- income
+- jobStage
+- replacesCurrentJob
+- endStage
+- endReason
+- targetServiceIds
+
+المعلومة الموجودة في الجلسة لا يعاد سؤال المستفيد عنها.
+
+## 4. قاموس اللغة
+
+`data/language_glossary.json` يحتوي مرادفات ومصطلحات شائعة يمكن توسيعها بدون تغيير جوهر المحرك.
+
+أمثلة:
+
+```text
+حافز -> إعانة البحث عن عمل
+بستة ونص -> 6500 في سياق راتب
+ما باشرت -> لا تعتبر الوظيفة started
+```
+
+القاموس ليس قاعدة أهلية. دوره توحيد لغة المستخدم مع لغة النظام.
+
+## 5. Retrieval محدود
+
+صلة لا يرسل 18 خدمة إلى النموذج.
+
+- سؤال حدث مثل وظيفة جديدة أو تغير دخل: لا نرسل أي كتالوج خدمات للـAI
+- سؤال خدمة غامض: الاسترجاع المحلي يختار عادة 1 إلى 3 خدمات مرشحة
+- اسم خدمة مباشر: نتعامل معه محليا في أغلب الحالات
+
+محرك القواعد وحده يقرر لاحقا أي خدمة مرتبطة بالنتيجة.
+
+## 6. AI للفهم فقط
+
+Groq لا يقرر الأهلية ولا يكتب القرار النهائي.
+
+يستخدم فقط عندما تكون صياغة المستخدم غير واضحة بما يكفي للمنطق المحلي.
+
+إذا كان لدينا حقيقة محلية عالية الثقة مثل `salary = 6500` أو `ما باشرت` فلا يسمح لنتيجة النموذج أن تناقضها.
+
+## 7. Clarification بدلا من التخمين
+
+إذا كانت معلومة مؤثرة ناقصة، نسأل سؤالا واحدا واضحا.
+
+مثال خالد:
+
+```text
+جاني شغل بستة ونص ووافقت بس ما باشرت
+```
+
+نعرف الراتب والمرحلة. السؤال المتبقي الذي يغير النتيجة:
+
+```text
+هل الوظيفة الجديدة بديلة عن وظيفتك الحالية، أو أن عقدك الحالي سيبقى قائما؟
+```
+
+ولا نعيد سؤال الراتب.
+
+## 8. Validation
+
+بعد فهم الرسالة نطبق فحوص اتساق قبل القواعد.
+
+مثال:
+
+```text
+وافقت بس ما باشرت
+```
+
+لا يمكن أن تنتهي داخليا كـ`started` حتى لو أخطأ النموذج في التصنيف.
+
+## 9. الاستمرارية عند تعطل AI
+
+- Timeout واضح لـGroq
+- لا توجد Retry loops طويلة
+- الأسئلة الواضحة تعمل بدون AI أصلا
+- إذا تعطل Groq يرجع النظام للمسار المحلي بدل ترك `/api/chat` في Pending
+
+## 10. سلوك الواجهة
+
+المحادثة لا تنزل تلقائيا عند وصول الرد.
+
+- موضع القراءة يبقى كما هو
+- المستخدم ينزل بنفسه لقراءة الرد الجديد
+- تركيز حقل الإدخال يستخدم `preventScroll`
+- `overflow-anchor` معطل داخل مساحة الرسائل لمنع تحريك المتصفح للمحتوى تلقائيا
+
+## أنماط التصميم التي أخذناها كمرجع
+
+### Intercom Fin
+
+الفكرة المستخدمة: تحسين السؤال قبل الإرسال، استرجاع المعرفة ذات الصلة فقط، طلب توضيح إذا انخفضت الثقة، ثم فحص جودة النتيجة قبل الرد.
+
+مرجع:
+https://www.intercom.com/help/en/articles/9929230-the-fin-ai-engine
+
+### Microsoft Copilot Studio
+
+الفكرة المستخدمة: Inputs واضحة لكل مهمة، تعبئة القيم من سياق المحادثة أو ملف المستخدم، والسؤال فقط عن المدخلات الناقصة مع validation للقيم.
+
+مراجع:
+https://learn.microsoft.com/en-us/microsoft-copilot-studio/guidance/generative-orchestration
+https://learn.microsoft.com/en-us/microsoft-copilot-studio/advanced-additional-settings-topic-action-inputs
+
+### Google Dialogflow CX
+
+الفكرة المستخدمة: Session parameters تحفظ القيم خلال الرحلة، والـwebhook يستقبل البيانات المنظمة لتطبيق منطق الأعمال بدل الاعتماد على النص الخام.
+
+مراجع:
+https://docs.cloud.google.com/dialogflow/cx/docs/concept/parameter
+https://docs.cloud.google.com/dialogflow/cx/docs/concept/webhook
+
+### Zendesk AI Agents
+
+الفكرة المستخدمة: Knowledge Search Rules تحدد أي مصادر يبحث فيها الوكيل حسب حالة المحادثة، وتجنب توسيع المعرفة المرسلة بدون داع لأن كثرة المصادر قد تزيد latency وتخفض الدقة.
+
+مراجع:
+https://support.zendesk.com/hc/en-us/articles/9185497386394-Configuring-search-rules-for-knowledge-sources-for-AI-agents
+https://support.zendesk.com/hc/en-us/articles/8357749301658-Connecting-knowledge-sources-to-power-generative-replies-in-advanced-AI-agents
+
+### Ada
+
+الفكرة المستخدمة: Glossary يربط لغة المستخدم والمصطلحات الشائعة بالمصطلحات الرسمية التي يستخدمها النظام في الفهم والبحث.
+
+مرجع:
+https://docs.ada.cx/2026-07-06-glossary-ga
+
+### GOV.UK Chat
+
+الفكرة المستخدمة: السؤال التوضيحي عند الغموض، إعطاء المستخدم طريقة للتحقق من المصدر، قياس الدقة والسرعة والثقة، وعدم الإجابة عندما لا توجد ثقة كافية.
+
+مرجع:
+https://insidegovuk.blog.gov.uk/2026/03/16/5-things-we-learned-testing-gov-uk-chat-an-ai-assistant-for-government/
 `````
 
-## `tests/rules.test.js`
+## `SOURCE_NOTES.md`
 
 `````text
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { personaById } from '../src/knowledge.js';
-import {
-  currentServices,
-  opportunities,
-  analyzeIncome,
-  analyzeNewJob,
-  analyzeEmploymentEnd,
-  laborDispute,
-  evaluateIntent,
-  evaluateSpecificServices
-} from '../src/rules.js';
+# ملاحظات المصادر
 
-const khalid = personaById.khalid;
-const reem = personaById.reem;
-const salman = personaById.salman;
-const noura = personaById.noura;
-const saleh = personaById.saleh;
+تاريخ المراجعة: 2026-10-04
 
-function titles(result) {
-  return (result.results || result).map(item => item.title).join(' | ');
+هذا الملف يوثق المصادر العامة المستخدمة لبناء قاعدة صلة وBenchmark. النتائج داخل النموذج لا تمثل قرار أهلية رسمي.
+
+## وزارة الموارد البشرية والتنمية الاجتماعية
+
+دليل الخدمات:
+https://www.hrsd.gov.sa/ministry-services
+
+صفحة تقارير صوت المستفيد الرسمية:
+https://www.hrsd.gov.sa/ministry/e-participation/beneficiary-voice-reports
+
+قسم الأثر يستخدم Baseline الربع الثاني 2026 كما هو موثق في تقرير صوت المستفيد: 757,960 إجمالي تفاعل، 526,945 مكالمة واردة، 58,661 شكوى، و172,354 تفاعلا عبر التواصل الاجتماعي. صفحة الوزارة الحالية تعرض تقرير Q2 2026 ضمن التقارير الرسمية.
+
+سيناريو الأثر يطبق حساسية 3% و5% و10% على المكالمات الواردة. عند 5% تكون الحسبة 26,347 مكالمة أقل في الربع تقريبا، و2,635 ساعة عمل إذا افترضنا 6 دقائق للمكالمة، و105,388 مكالمة سنويا إذا تكرر نفس الحجم. هذه فرضية PoC وليست Forecast ولا وعدا تشغيليا.
+
+أزلنا من واجهة الأثر أرقام الخدمات والمعاملات التي كانت تظهر سابقا من الصفحة الرئيسية لأن العرض الحالي للموقع يعتمد على قيم محملة ديناميكيا ولا نريد تثبيت رقم لا يمكن التحقق منه بثبات من الصفحة العامة.
+
+### الضمان الاجتماعي المطور
+https://www.hrsd.gov.sa/ministry-services/services/%D9%86%D8%B8%D8%A7%D9%85-%D8%A7%D9%84%D8%B6%D9%85%D8%A7%D9%86-%D8%A7%D9%84%D8%A7%D8%AC%D8%AA%D9%85%D8%A7%D8%B9%D9%8A-%D8%A7%D9%84%D9%85%D8%B7%D9%88%D8%B1
+
+مرجع النظام واللائحة:
+https://www.hrsd.gov.sa/knowledge-centre/decisions-and-regulations/regulation-and-procedures/841045
+
+قاعدة تصميم صلة:
+عدم كون الشخص مستفيدا حاليا لا يعني عدم إمكانية التقديم ولا يعني عدم الأهلية. الأهلية تعتمد على الدخل المحتسب وبقية الشروط والبيانات المطلوبة.
+
+### خدمات أخرى من الوزارة
+
+- اعتراض على إيقاف معاش الضمان
+- إدارة العقود
+- إنهاء العلاقة التعاقدية
+- التسوية الودية للخلافات العمالية
+- حاسبة مكافأة نهاية الخدمة
+- تقييم الإعاقة
+- الإعانة المالية للأشخاص ذوي الإعاقة
+- الشهادات الرقمية للتسهيلات المرورية
+- التوثيق الإلكتروني لعقود العمالة المنزلية
+- بطاقة امتياز لكبار السن
+
+كل رابط تفصيلي محفوظ داخل `data/services.json` مع تاريخ المراجعة والقواعد التي نمذجناها.
+
+## صندوق تنمية الموارد البشرية
+
+### إعانة البحث عن عمل
+https://www.hrdf.org.sa/products-and-services/programs/individuals/other/job-search-subsidy/
+
+ملاحظات نمذجت في صلة:
+
+- سعودي
+- مقيم بشكل دائم
+- قادر وجاد في البحث عن عمل
+- العمر 20 إلى 40 سنة
+- غير موظف
+- لا معاش تقاعدي
+- لا تعويض ضد التعطل
+- لا معاش ضمان اجتماعي
+- ليس طالبا أو متدربا
+- لا نشاط تجاري
+- الدخل والثروة وسجل الاستفادة والتواريخ عناصر مطلوبة للتحقق
+
+### تمهير
+https://www.hrdf.org.sa/products-and-services/programs/individuals/training/graduate-development/
+
+### دروب
+https://www.hrdf.org.sa/products-and-services/programs/individuals/training/online-training-doroob-individuals/
+
+### دعم الشهادات المهنية
+https://www.hrdf.org.sa/products-and-services/programs/individuals/training/professional-certificates/
+
+### وصول
+https://www.hrdf.org.sa/products-and-services/programs/individuals/enable/wusool/
+
+### قرة
+https://www.hrdf.org.sa/products-and-services/programs/individuals/enable/childcare-support-for-working-women/
+
+### سبل
+https://www.hrdf.org.sa/products-and-services/programs/individuals/guidance/career-guidance-sobol/
+
+## Benchmark
+
+### سنغافورة: LifeSG
+
+GovTech LifeSG:
+https://www.tech.gov.sg/products-and-services/for-citizens/digital-services/lifesg/
+
+A Decade of Impact:
+https://www.tech.gov.sg/a-decade-of-impact/
+
+Milestone Tracker:
+https://www.life.gov.sg/preparing-our-nations-sons
+
+المعلومات المستخدمة في الواجهة تشمل قرابة مليوني مستخدم وأكثر من 130 خدمة ومزية حسب GovTech في 2026، وتحسن زمن تسجيل الولادة من نحو ساعة إلى 15 دقيقة. صفحة LifeSG توضح كذلك عرض المزايا وحالة الطلبات والمواعيد وملفا شخصيا يجمع معلومات من جهات حكومية متعددة. GovTech يوضح أن Singpass يدعم النماذج المعبأة مسبقا ببيانات موثقة.
+
+### إستونيا: Proactive Government Services
+
+https://ria.ee/en/state-information-system/personal-services/proactive-government-services
+
+استخدمنا مفهوم أحداث الحياة وService Owner وإخفاء تعقيد الجهات عن المستخدم. RIA تنشر أكثر من 478 ألف زيارة للخدمات الاستباقية في 2025، منها 179,362 لمسار التقاعد و88,687 لمسار الزواج.
+
+### فرنسا: Mes Droits Sociaux
+
+https://www.mesdroitssociaux.gouv.fr/votre-simulateur/
+
+المحاكي الحالي يعلن تقدير 58 مساعدة في أقل من 15 دقيقة. وتوضح البوابة أن البيانات المعبأة مسبقا تأتي من المجالين الاجتماعي والضريبي، وأن ما يدخله المستخدم في المحاكاة لا يعد تصريح تغيير ولا يحدث بياناته لدى الجهات. النتائج إرشادية. في صلة استلهمنا هذا الفصل وطبقناه كـ Digital Twin مستقل. المصطلح نفسه قرار تصميمي في صلة وليس اسما تستخدمه البوابة الفرنسية.
+
+### المملكة المتحدة: Tell Us Once
+
+مسح 2013:
+https://www.gov.uk/government/news/award-winning-government-service-achieves-98-satisfaction-rate-amongst-customers
+
+تحليل المسح:
+https://www.gov.uk/government/publications/tell-us-once-customer-service-survey-analysis
+
+الخدمة الحالية على GOV.UK تتيح الإبلاغ عن الوفاة إلى معظم الجهات الحكومية دفعة واحدة. مؤشرات 98% و100% و95%+ و500 ألف مستخدم تعود لمسح 2013، لذلك هي موسومة داخل صلة كأرقام تاريخية وليست أداء حاليا.
+
+### أستراليا: myGov User Audit
+
+https://my.gov.au/content/dam/mygov/documents/audit/mygov-useraudit-jan2023-volume2.pdf
+
+التجربة مستخدمة كدرس تحذيري. التدقيق يوثق أن 7 من 15 خدمة عضو استخدمت Tell Us Once في يونيو 2022، وأن 34% من تحديثات التفاصيل الشخصية قبلت مباشرة في يناير 2022، بينما 38% احتاجت تدخلا إضافيا من الموظفين. كما يوثق اختلاف التشريعات وجودة البيانات وعدم تطابق الحقول وضعف إبلاغ المستخدم بنتيجة التحديث. صفحة التدقيق الحالية توضح أن الحكومة وافقت أو وافقت من حيث المبدأ على 9 من 10 توصيات التقرير.
+`````
+
+## `SECURITY.md`
+
+`````text
+# Security notes
+
+- لا تضع `GROQ_API_KEY` داخل `public/` أو أي JavaScript يصل إلى المتصفح
+- المفتاح المحلي يجب أن يبقى في `.env`
+- `.env` متجاهل عبر `.gitignore`
+- `.env.example` يحتوي أسماء المتغيرات فقط ولا يحتوي سرا حقيقيا
+- في الاستضافة استخدم Environment Variables في لوحة مزود الاستضافة
+- إذا ظهر مفتاح حقيقي في GitHub في أي وقت، ألغ المفتاح وأنشئ غيره
+- بيانات الشخصيات في هذا النموذج افتراضية ولا يجب استبدالها ببيانات مستفيدين حقيقية في نسخة عامة
+`````
+
+## `GITHUB_PUBLISH.md`
+
+`````text
+# نشر صلة على GitHub بأمان
+
+المشروع جاهز للرفع إلى GitHub بدون ملف `.env` وبدون مفتاح Groq.
+
+## قبل أول رفع
+
+شغل:
+
+```powershell
+npm run check
+```
+
+ثم تأكد أن `.env` متجاهل:
+
+```powershell
+git check-ignore -v .env
+```
+
+المفروض يظهر أن قاعدة `.env` في `.gitignore` هي التي تجاهلت الملف.
+
+## أول رفع إلى مستودع جديد
+
+من داخل مجلد المشروع:
+
+```powershell
+git init
+git add .
+git status
+git commit -m "Initial Silah GovTech prototype"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+git push -u origin main
+```
+
+قبل `git commit` راجع `git status`. يجب ألا يظهر `.env` ضمن الملفات المضافة.
+
+## إذا رفعت مفتاحا بالخطأ سابقا
+
+حذف `.env` من آخر نسخة لا يكفي لأن المفتاح قد يبقى في Git history.
+
+1. احذف المفتاح من Groq Console
+2. أنشئ مفتاحا جديدا
+3. تأكد أن `.env` داخل `.gitignore`
+4. لا تستخدم المفتاح القديم مرة ثانية
+
+## GitHub Pages
+
+GitHub Pages يشغل ملفات Frontend ثابتة فقط. صلة يعتمد على `server.js` وGroq API، لذلك رفع الكود إلى GitHub طبيعي، لكن النسخة الحية تحتاج استضافة تشغل Node.js.
+
+المجلد يحتوي `render.yaml` كخيار جاهز للنشر على Render. بعد ربط المستودع بالخدمة، أضف `GROQ_API_KEY` كمتغير بيئة في لوحة الاستضافة. لا تضع المفتاح داخل GitHub.
+`````
+
+## `START_HERE.md`
+
+`````text
+# ابدأ من هنا
+
+## أسرع تشغيل على Windows
+
+1. فك ضغط المشروع
+2. اضغط مرتين على `SETUP_AND_START.cmd`
+3. الصق مفتاح Groq عندما يطلبه
+4. انتظر نجاح الفحص وتشغيل الخادم
+5. افتح `http://localhost:3000`
+
+المفتاح يحفظ محليا في `.env`. الملف متجاهل في Git.
+
+إذا كان المنفذ 3000 مستخدما، افتح `.env` وغير:
+
+```env
+PORT=3001
+```
+
+ثم افتح `http://localhost:3001`.
+
+## التشغيل اليدوي
+
+```powershell
+Copy-Item .env.example .env
+```
+
+ثم داخل `.env`:
+
+```env
+GROQ_API_KEY=gsk_ضع_مفتاحك_هنا
+GROQ_MODEL=openai/gpt-oss-20b
+GROQ_TIMEOUT_MS=8500
+PORT=3000
+```
+
+بعدها:
+
+```powershell
+npm run check
+npm start
+```
+
+
+## وش الجديد في V7 للعرض التنفيذي
+
+- زر `محادثة جديدة` يبدأ جلسة نظيفة مع بقاء الشخصية المختارة
+- علامة المعلومات بجانب `توأم الحالة` تشرح Digital Twin عند المرور أو التركيز
+- Benchmark مختصر في الصفحة، والتفاصيل التنفيذية الكاملة لكل تجربة تفتح عند الضغط: المشكلة، الرحلة، التصميم، التكامل، البيانات، النتائج، التحديات والدروس
+- قسم الأثر يستخدم Baseline الربع الثاني 2026 وسيناريو حساسية 3% و5% و10%، مع توضيح أن الحسبة افتراضية وليست Forecast
+- المقارنات ومنهجية القياس مطوية افتراضيا لتقليل طول الصفحة بدون حذف المحتوى
+
+## اختبار الصحة
+
+افتح:
+
+```text
+http://localhost:3000/api/health
+```
+
+المفروض يظهر:
+
+```json
+{
+  "ok": true,
+  "aiEnabled": true,
+  "routing": "semantic-frame-state-resolve-rule"
 }
+```
 
-function serviceIds(result) {
-  return (result.results || result).map(item => item.serviceId).filter(Boolean);
-}
+## اختبارات سريعة للمحادثة
 
-test('Khalid current profile is linked to social security and employment contracts', () => {
-  const ids = serviceIds(currentServices(khalid));
-  assert.ok(ids.includes('social_security'));
-  assert.ok(ids.includes('employment_contracts'));
-});
+خالد:
 
-test('Khalid opportunities include domestic worker contract documentation', () => {
-  const ids = serviceIds(opportunities(khalid));
-  assert.ok(ids.includes('domestic_worker_contract_documentation'));
-});
+```text
+جاني شغل بستة ونص ووافقت بس للحين ما باشرت، وش بيتغير علي؟
+```
 
-test('Income decrease for Khalid does not frame the change as loss of eligibility', () => {
-  const result = analyzeIncome(khalid, 4000, 'future');
-  const text = titles(result) + JSON.stringify(result.results);
-  assert.match(text, /مبلغ المعاش/);
-  assert.doesNotMatch(text, /فقدان الأهلية|تفقد الأهلية/);
-});
+المفروض يعرف 6500 ولا يسأل عن الراتب، ثم يسأل فقط عن وضع الوظيفة الحالية إذا كان ذلك ضروريا.
 
-test('Income increase for Khalid warns that pension amount or entitlement can be affected', () => {
-  const result = analyzeIncome(khalid, 7000, 'future');
-  const text = titles(result);
-  assert.match(text, /مبلغ المعاش|الاستحقاق/);
-});
+اختبار رقم مختصر:
 
-test('Actual income change for a current social security beneficiary includes reporting notice', () => {
-  const result = analyzeIncome(khalid, 7000, 'current');
-  assert.ok(result.results.some(item => item.type === 'action' && /15/.test(item.body)));
-});
+```text
+راتبي بيصير 7
+```
 
-test('Income decrease for Reem does not invent social security eligibility from salary alone', () => {
-  const result = analyzeIncome(reem, 4000, 'future');
-  const text = JSON.stringify(result.results);
-  assert.match(text, /لا يكفي وحده|ما نحول/);
-  assert.doesNotMatch(text, /مؤهل|مستحقة/);
-});
+المفروض يسأل:
 
-test('New job for Khalid asks whether it replaces the current job when current contract is active', () => {
-  const result = analyzeNewJob(khalid, {
-    jobStage: 'accepted',
-    salary: 6500,
-    replacesCurrentJob: null
-  });
-  assert.equal(result.needsClarification, true);
-  assert.match(result.question, /بديلة|الحالي/);
-});
+```text
+تقصد 7,000 ريال؟
+```
 
-test('Accepted job offer for Khalid is future impact and not treated as started income', () => {
-  const result = analyzeNewJob(khalid, {
-    jobStage: 'accepted',
-    salary: 6500,
-    replacesCurrentJob: true
-  });
-  const text = JSON.stringify(result.results);
-  assert.match(text, /لم يبدأ|عند بدء|إذا بدأ/);
-  assert.doesNotMatch(text, /بدأ الدخل الجديد بقيمة/);
-});
+ريم:
 
-test('Started job for Salman changes employment state only after starting', () => {
-  const result = analyzeNewJob(salman, {
-    jobStage: 'started',
-    salary: 4500,
-    replacesCurrentJob: null
-  });
-  assert.match(JSON.stringify(result.results), /الحالة الوظيفية تغيرت/);
-});
+```text
+بنفصل من وظيفتي، هل الضمان ممكن يناسبني؟
+```
 
-test('Employment end journey stops early for Salman when there is no active contract', () => {
-  const result = analyzeEmploymentEnd(salman, {
-    endStage: 'planned',
-    endReason: 'fixed_expiry'
-  });
-  assert.equal(result.needsClarification, false);
-  assert.match(titles(result), /لا يوجد عقد فعال/);
-});
+المفروض لا يعتبر عدم الاستفادة الحالية مانعا من التقديم أو دليلا على عدم الأهلية.
 
-test('Resignation excludes SANED path', () => {
-  const result = analyzeEmploymentEnd(khalid, {
-    endStage: 'ended',
-    endReason: 'resignation'
-  });
-  const text = JSON.stringify(result.results);
-  assert.match(text, /لا نظهر ساند/);
-});
+## قبل GitHub
 
-test('Fixed term expiry can surface SANED only as a path worth checking', () => {
-  const result = analyzeEmploymentEnd(khalid, {
-    endStage: 'ended',
-    endReason: 'fixed_expiry'
-  });
-  const saned = result.results.find(item => /ساند/.test(item.title));
-  assert.ok(saned);
-  assert.match(saned.tag, /يستحق التحقق/);
-  assert.doesNotMatch(saned.title + saned.body, /مؤهل|مستحق مؤكدا/);
-});
+اقرأ `GITHUB_PUBLISH.md` وشغل:
 
-test('Noura opportunities include disability aid and traffic facilities', () => {
-  const ids = serviceIds(opportunities(noura));
-  assert.ok(ids.includes('disability_financial_aid'));
-  assert.ok(ids.includes('traffic_facilities_certificate'));
-});
+```powershell
+npm run check
+```
 
-test('Saleh gets the senior privilege card from age and nationality data', () => {
-  const ids = serviceIds(opportunities(saleh));
-  assert.ok(ids.includes('senior_privilege_card'));
-});
+## اختبار الـ100 حالة
 
-test('Reem does not get social security automatically from current profile', () => {
-  const ids = serviceIds(opportunities(reem));
-  assert.equal(ids.includes('social_security'), false);
-});
+بعد تشغيل الخادم على المنفذ الموجود في `.env` شغل:
 
-test('Labor dispute routes to friendly settlement service', () => {
-  const result = laborDispute(khalid, 'ما عطوني مستحقاتي');
-  assert.ok(serviceIds(result).includes('labor_settlement'));
-});
+```powershell
+npm run test:100:http
+```
 
-test('Current services intent returns current services plus relevant opportunities', () => {
-  const result = evaluateIntent(khalid, 'current_services', {});
-  const ids = serviceIds(result);
-  assert.ok(ids.includes('social_security'));
-  assert.ok(ids.includes('employment_contracts'));
-  assert.ok(ids.includes('domestic_worker_contract_documentation'));
-});
+يمكنك تحديد عنوان مختلف:
 
-test('Salman gets job seeker programs as opportunities without being declared officially eligible', () => {
-  const items = opportunities(salman);
-  const ids = serviceIds(items);
-  assert.ok(ids.includes('job_search_subsidy'));
-  assert.ok(ids.includes('tamheer'));
-  assert.ok(ids.includes('doroob'));
-  assert.ok(ids.includes('career_guidance_sobol'));
-  const text = JSON.stringify(items);
-  assert.doesNotMatch(text, /مؤهل نهائيا|مستحق نهائيا/);
-});
+```powershell
+$env:SILAH_URL="http://localhost:3001"
+npm run test:100:http
+```
 
-test('Saleh senior privilege result does not claim that the card was issued when issuance state is unknown', () => {
-  const item = opportunities(saleh).find(result => result.serviceId === 'senior_privilege_card');
-  assert.ok(item);
-  assert.match(item.body, /لا يحتوي تأكيدا|لم.*تأكيدا|لا.*تأكيدا/);
-  assert.ok(item.unknowns?.some(value => /إصدار/.test(value)));
-});
+الـGold Set موجود في `tests/gold100.json`.
+`````
 
-test('Reem income drop can unlock Qura and Wusool in the hypothetical scenario', () => {
-  const result = analyzeIncome(reem, 4000, 'future');
-  const ids = serviceIds(result);
-  assert.ok(ids.includes('qurra'));
-  assert.ok(ids.includes('wusool'));
-  const qura = result.results.find(item => item.serviceId === 'qurra');
-  assert.match(qura.tag, /بسبب هذا التغيير/);
-});
+## `README.md`
+
+`````text
+# صلة
+
+صلة نموذج GovTech تصوري يبدأ من بيانات المستفيد، يفهم كلامه باللغة الطبيعية، ثم يمرر الحالة إلى محرك قواعد واحد يعرض الخدمات والآثار المرتبطة بشكل قابل للتفسير.
+
+هذه النسخة تركز على جودة المحادثة. الفكرة الأساسية أن النموذج اللغوي لا يحمل المنطق النظامي ولا يحتاج رؤية كتالوج الخدمات كامل في كل رسالة.
+
+## أسرع تشغيل
+
+على Windows اضغط مرتين على:
+
+```text
+SETUP_AND_START.cmd
+```
+
+الصق مفتاح Groq مرة واحدة. السكربت ينشئ `.env` محليا، يشغل فحص الأمان والاختبارات، ثم يبدأ الخادم.
+
+افتح:
+
+```text
+http://localhost:3000
+```
+
+إذا كان المنفذ مستخدما، غير `PORT` داخل `.env` إلى 3001 مثلا.
+
+## واجهة العرض V7
+
+V7 لا تغير قواعد V6، بل تجعل العرض التنفيذي أقصر وأوضح بدون حذف المحتوى:
+
+- Benchmark من خمس تجارب حكومية يظهر كبطاقات مختصرة، والتفاصيل الكاملة تفتح عند الضغط فقط
+- كل تجربة تعرض المشكلة، سبب البناء، الرحلة، التصميم، التكامل، البيانات، النتائج، التحديات، الدروس، ما طبقناه في صلة، والمصادر الرسمية
+- قسم الأثر يستخدم Baseline الربع الثاني 2026 من تقرير صوت المستفيد، ثم يفصله عن سيناريو أثر افتراضي قابل لتغيير النسبة ويصرح بأن الحسبة ليست توقعا تشغيليا
+- تفاصيل مؤشرات القياس ومنهجية الـPoC مطوية افتراضيا لتقليل طول الصفحة
+- زر `محادثة جديدة` يمسح تاريخ المحادثة والسيناريو فقط ويحتفظ بالشخصية المختارة
+- شرح `Digital Twin` متاح من علامة المعلومات بجانب توأم الحالة، ويظهر عند المرور أو التركيز بلوحة المفاتيح
+- مقارنة القدرات وقراءة الدروس في Benchmark تستخدم Progressive Disclosure حتى يبقى المحتوى موجودا بدون إطالة الصفحة
 
 
-test('Reem can ask about social security even when she is not a current beneficiary', () => {
-  const [item] = evaluateSpecificServices(reem, ['social_security'], {});
-  const text = JSON.stringify(item);
-  assert.match(text, /عدم استفادتك الحالية لا يمنع|التقديم عليه/);
-  assert.doesNotMatch(text, /لا يمكن التسجيل|غير متاح للتسجيل/);
-  assert.equal(item.relationship.current, 'not_current_beneficiary');
-  assert.equal(item.relationship.eligibility, 'not_assessed');
-});
+### Baseline الأثر في V7
 
-test('Reem planned employment end makes social security a future relevance check, not a current entitlement', () => {
-  const [item] = evaluateSpecificServices(reem, ['social_security'], { endStage: 'planned' });
-  assert.equal(item.relationship.relevance, 'potential_future');
-  assert.equal(item.relationship.eligibility, 'not_assessed');
-  assert.match(item.title + item.body, /إذا تغير دخلك فعليا|انتهاء العلاقة الوظيفية/);
-  assert.doesNotMatch(item.title + item.body, /مؤهل|مستحقة/);
-});
+الواجهة تستخدم أرقام الربع الثاني 2026 من تقرير صوت المستفيد كنقطة قياس: 757,960 إجمالي تفاعل، 526,945 مكالمة واردة، 58,661 شكوى، و172,354 تفاعلا عبر التواصل الاجتماعي. سيناريو 5% ينتج تقريبا 26,347 مكالمة أقل في الربع و2,635 ساعة عند افتراض 6 دقائق للمكالمة. هذه حسبة حساسية للـPoC وليست Forecast.
 
-test('Non enrollment never becomes automatic service unavailability for direct assessments', () => {
-  const ids = ['social_security', 'tamheer', 'qurra', 'wusool', 'career_guidance_sobol'];
-  const items = evaluateSpecificServices(reem, ids, {});
-  for (const item of items) {
-    assert.doesNotMatch(JSON.stringify(item), /غير مسجل.*لذا لا يمكن|لا توجد خدمة.*لذا لا يمكن التسجيل/);
+## محرك المحادثة V6
+
+المسار الحالي:
+
+```text
+رسالة المستفيد
+      ↓
+Refine محلي للنص
+      ↓
+استخراج حقائق واضحة مثل المبلغ والمرحلة والنفي
+      ↓
+دمج Session Slots السابقة
+      ↓
+استرجاع معرفة محدود عند الحاجة فقط
+      ↓
+Groq مرة واحدة إذا بقي غموض لغوي
+      ↓
+Validation للحقائق
+      ↓
+Rules Engine
+      ↓
+رد مبني محليا من نتائج القواعد
+```
+
+أهم الفروقات:
+
+- `جاني شغل بستة ونص` يفهم محليا على أنه عرض وظيفي بقيمة 6500 ريال
+- `وافقت بس ما باشرت` تحفظ كمرحلة قبول بدون بدء العمل أو الدخل
+- `راتبي بيصير 7` لا يحول إلى 7000 بصمت، بل يطلب تأكيدا
+- المعلومة الموجودة في الرسالة أو سياق الجلسة لا يسأل عنها مرة ثانية
+- أسئلة الأحداث مثل وظيفة جديدة أو تغير دخل لا ترسل كتالوج الخدمات إلى Groq أصلا
+- أسئلة الخدمة الغامضة ترسل بحد أقصى 3 خدمات مرشحة فقط
+- اسم خدمة واضح أو سؤال واضح يمكن أن يعمل بدون AI
+- Groq يستخدم للفهم اللغوي فقط، ولا يحدد الأهلية ولا يكتب القرار النهائي
+- الحقائق الحتمية المحلية تتغلب على أي تصنيف متعارض من النموذج
+- إذا Groq تأخر أو تعطل، صلة يرجع للمسار المحلي ولا يترك الطلب Pending
+- سجل المحادثة المرسل للنموذج يقتصر على آخر 3 أدوار فقط
+- رد المساعد لا يحرك نافذة المحادثة تلقائيا، موضع القراءة يبقى ثابتا حتى ينزل المستخدم بنفسه
+
+التفاصيل في `docs/CHAT_ENGINE.md`.
+
+### ما تغير في V6
+
+V6 يعامل رسالة المستفيد كإطار دلالي بدل البحث عن كلمات منفصلة. الإطار يفصل بين النية والحدث والنفي والزمن والمرحلة والمبلغ ونوع المبلغ والخدمة المرجعية، ثم يدمج هذه الحقائق مع حالة المحادثة قبل تشغيل القواعد.
+
+أمثلة مهمة:
+
+- `جاني عرض ب6500 بس ما وافقت عليه` يصبح عرضا تحت المراجعة مع `accepted=false`
+- `راتبي انخفض 500 ريال` يصبح فرق دخل `-500` وليس راتبا نهائيا بقيمة 500
+- `زاد راتبي 1000` يحسب الأثر على الراتب الحالي بدل استبداله بـ1000
+- `ليش الضمان ممكن يتأثر؟` يشرح أثر آخر سيناريو على الضمان، وليس سبب ظهور خدمة الضمان
+- `يعني أنا مؤهل أكيد؟` يرجع إلى آخر خدمة تمت مناقشتها ويجيب عن درجة الأهلية بدل إعادة قائمة الخدمات
+- `طيب أقدر أقدم عليه؟` يحل مرجع `عليه` من سياق المحادثة
+- `إذا انفصلت من الوظيفة هل الضمان يصير مناسب؟` يمثل حدث فقد الوظيفة وسؤال الضمان في نفس الإطار
+
+
+## فهم اللهجة والأرقام
+
+`src/nlu.js` مسؤول عن طبقة فهم حتمية قبل الذكاء الاصطناعي.
+
+أمثلة مدعومة:
+
+```text
+جاني عرض بستة ونص       -> 6500
+جاني عرض بـ٦ ونص        -> 6500
+جاني عرض ب6.5           -> 6500
+جاني عرض بثمانية ونص    -> 8500
+راتب الوظيفة 12 ألف     -> 12000
+راتب العرض 6500         -> 6500
+```
+
+الحالات المختصرة التي تحتمل أكثر من تفسير تستخدم Confirmation بدل الافتراض.
+
+## قاموس لغة قابل للتوسعة
+
+`data/language_glossary.json` يفصل لغة المستفيد عن المصطلحات الرسمية.
+
+أمثلة:
+
+```text
+حافز -> إعانة البحث عن عمل
+الضمان -> الضمان الاجتماعي المطور
+ما باشرت -> الوظيفة لم تبدأ فعليا
+بديلة عن وظيفتي -> الوظيفة الجديدة تستبدل الحالية
+```
+
+إضافة مرادف جديد لا تحتاج تعديل محرك القواعد.
+
+## منطق الخدمة
+
+قاعدة مهمة:
+
+```text
+غير مستفيد حاليا
+لا تعني
+لا يمكن التقديم
+ولا تعني
+غير مؤهل
+```
+
+صلة يتعامل مع أربع حالات منفصلة لكل خدمة:
+
+```text
+Current Enrollment
+Application Availability
+Eligibility Status
+Context Relevance
+```
+
+ويراعي ثلاثة أنواع للحقيقة:
+
+```text
+Current
+Reported
+What If
+```
+
+راجع `docs/LOGIC_MODEL.md`.
+
+## استرجاع الخدمات
+
+لا يتم إرسال 18 خدمة إلى النموذج في كل رسالة.
+
+- حدث وظيفي أو تغير دخل: صفر خدمات ترسل للـAI
+- سؤال خدمة غامض: عادة 1 إلى 3 خدمات مرشحة
+- اسم خدمة مباشر: غالبا يحسم محليا
+- المحرك الكامل يظل متاحا بعد فهم السؤال لتقييم النتائج حسب قواعده
+
+`src/retrieval.js` مسؤول عن الاسترجاع، وليس عن الأهلية.
+
+## الخدمات الموجودة
+
+قاعدة المعرفة الحالية تشمل 18 خدمة ومنتجا، منها:
+
+- الضمان الاجتماعي المطور
+- الاعتراض على إيقاف معاش الضمان
+- إدارة العقود
+- إنهاء العلاقة التعاقدية
+- التسوية الودية للخلافات العمالية
+- حاسبة مكافأة نهاية الخدمة
+- تقييم الإعاقة
+- الإعانة المالية للأشخاص ذوي الإعاقة
+- التسهيلات المرورية
+- توثيق عقود العمالة المنزلية
+- بطاقة امتياز كبار السن
+- إعانة البحث عن عمل
+- تمهير
+- دروب
+- دعم الشهادات المهنية
+- وصول
+- قرة
+- سبل
+
+التفاصيل والقواعد والمصادر داخل `data/services.json`.
+
+## حماية من التعليق
+
+`src/ai.js` يستخدم `AbortController` مع مهلة زمنية صريحة.
+
+كل رسالة تستخدم صفر أو طلب AI واحد فقط. لا يوجد طلب AI ثان لصياغة الرد.
+
+في استجابة `/api/chat` يوجد `routingMeta` للمراجعة التقنية:
+
+```json
+{
+  "aiCalls": 1,
+  "aiSucceeded": true,
+  "strategy": "refine-extract-retrieve-validate-rule",
+  "candidateServiceIds": [],
+  "aiCandidateServiceIds": [],
+  "refinement": {
+    "intent": "new_job",
+    "jobStage": "accepted",
+    "money": {
+      "value": 6500,
+      "needsConfirmation": false
+    }
   }
-});
-
-test('Reem current wage explains why Wusool is not a preliminary match without blaming enrollment', () => {
-  const [item] = evaluateSpecificServices(reem, ['wusool'], {});
-  assert.match(item.body, /8500|يتجاوز الحد المنشور 8000/);
-  assert.equal(item.relationship.eligibility, 'known_rule_not_met_currently');
-});
-
-test('A younger persona gets a known current condition mismatch for senior privilege card', () => {
-  const [item] = evaluateSpecificServices(reem, ['senior_privilege_card'], {});
-  assert.equal(item.relationship.eligibility, 'known_rule_not_met_currently');
-  assert.match(item.body, /27/);
-});
-`````
-
-## `tests/run100_http.mjs`
-
-`````text
-import fs from 'node:fs';
-const base=process.env.SILAH_URL || 'http://localhost:3000';
-const cases=JSON.parse(fs.readFileSync(new URL('./gold100.json', import.meta.url),'utf8'));
-function val(data,key){
- if(key==='targetServiceId') return data.route?.targetServiceIds?.[0];
- if(key==='targetServiceIds') return data.route?.targetServiceIds||[];
- if(key==='needsConfirmation') return !!data.route?.pendingConfirmation;
- if(key==='started') return data.route?.started ?? (data.route?.jobStage==='started'?true:data.route?.jobStage!=='unknown'?false:null);
- if(key==='accepted') return data.route?.accepted ?? (data.route?.jobStage==='accepted'?true:['reviewing','rejected'].includes(data.route?.jobStage)?false:null);
- if(key==='ended') return data.route?.ended ?? (data.route?.intent==='employment_end_negated'?false:data.route?.endStage==='ended'?true:null);
- return data.route?.[key];
 }
-function eq(a,e){return Array.isArray(e)?Array.isArray(a)&&e.every(x=>a.includes(x)):a===e}
-let pass=0; const fails=[]; const rows=[];
-for(const c of cases){
- const r=await fetch(base+'/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({message:c.message,profileId:c.persona,history:[],scenarioState:c.previousState||{}})});
- const data=await r.json(); const f=[];
- for(const [k,e] of Object.entries(c.expected)){
-  if(['expectedEligibility','forbidConclusion'].includes(k)) continue;
-  const a = k==='requiresClarification'?data.route?.requiresClarification:k==='incomeSource'?data.route?.incomeSource:val(data,k);
-  if(!eq(a,e)) f.push(`${k}: ${JSON.stringify(a)} != ${JSON.stringify(e)}`);
- }
- if(!f.length) pass++; else fails.push({id:c.id,message:c.message,f,reply:data.reply,route:data.route});
- rows.push({id:c.id,reply:data.reply,aiMode:data.aiMode,aiCalls:data.routingMeta?.aiCalls||0});
-}
-console.log(JSON.stringify({pass,fail:cases.length-pass,rate:pass},null,2));
-if(fails.length){console.log(JSON.stringify(fails.slice(0,20),null,2));process.exitCode=1}
-fs.writeFileSync(new URL('./http100_results.json',import.meta.url),JSON.stringify(rows,null,2),'utf8');
-`````
+```
 
-## `tests/ui.test.js`
+إذا كان السؤال واضحا محليا، `aiCalls` يساوي 0.
 
-`````text
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { services, benchmarks } from '../src/knowledge.js';
+## ثبات المحادثة أثناء القراءة
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const app = fs.readFileSync(path.join(root, 'public', 'app.js'), 'utf8');
-const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+الواجهة لا تعمل Auto Scroll عند وصول الرد.
 
-test('Profile UI does not expose negative social security enrollment as a profile chip', () => {
-  assert.doesNotMatch(app, /غير مسجل كمستفيد ضمان في النموذج/);
-});
+- نحفظ `scrollTop` قبل إضافة الرسالة
+- نعيد نفس الموضع بعد تحديث DOM
+- حقل الكتابة يستخدم `preventScroll`
+- `overflow-anchor` معطل داخل منطقة الرسائل
 
-test('Expected impact section is present in the main navigation and page', () => {
-  assert.match(html, /data-scroll="impact"/);
-  assert.match(html, /id="impact"/);
-  assert.match(html, /الأثر المتوقع/);
-});
+بهذا المستخدم يقرر بنفسه متى ينزل لقراءة الرد.
 
-test('Service library is compact by default and supports on demand details', () => {
-  assert.equal(services.length, 18);
-  assert.match(html, /id="serviceModal"/);
-  assert.match(html, /id="serviceExpand"/);
-  assert.match(app, /slice\(0, 8\)/);
-});
+## الأثر المتوقع
 
-test('Benchmark includes five researched experiences and a capability matrix', () => {
-  assert.equal(benchmarks.length, 5);
-  assert.match(html, /id="benchmarkMatrix"/);
-  assert.match(app, /خريطة القدرات/);
-});
+المنصة لا تدعي نسب نجاح غير مقاسة. قسم الأثر يحدد مؤشرات يمكن قياسها في PoC مثل:
 
+- وقت الوصول للخدمة المناسبة
+- الرحلات غير المناسبة قبل التقديم
+- إعادة إدخال البيانات الموجودة مسبقا
+- الخدمات التي اكتشفها المستفيد بدون معرفة اسمها
+- نسبة الاستفسارات التي اكتملت ذاتيا
+- وضوح أثر القرار قبل حدوثه
 
-test('Chat keeps the reading position stable when new messages arrive', () => {
-  const css = fs.readFileSync(path.join(root, 'public', 'styles.css'), 'utf8');
-  assert.match(css, /overflow-anchor:none/);
-  assert.doesNotMatch(app, /messages\.scrollTop\s*=\s*messages\.scrollHeight/);
-  assert.doesNotMatch(app, /scrollMessages\(/);
-  assert.match(app, /focus\(\{ preventScroll: true \}\)/);
-});
+## Benchmark
 
-test('Executive demo supports a clean conversation reset without changing persona', () => {
-  assert.match(html, /id="resetChatButton"/);
-  assert.match(app, /function startNewConversation\(\)/);
-  assert.match(app, /state\.history = \[\]/);
-  assert.match(app, /state\.scenarioState = \{\}/);
-  assert.match(app, /resetChat\(state\.bootstrap\.profile\)/);
-});
+`data/benchmarks.json` يحتوي مقارنة تفصيلية مع:
 
-test('Digital Twin has an accessible on demand explanation', () => {
-  const css = fs.readFileSync(path.join(root, 'public', 'styles.css'), 'utf8');
-  assert.match(html, /aria-label="شرح توأم الحالة"/);
-  assert.match(html, /وش يعني Digital Twin في صلة؟/);
-  assert.match(css, /\.info-popover:hover \.info-panel/);
-  assert.match(css, /\.info-popover:focus-within \.info-panel/);
-});
+- LifeSG في سنغافورة
+- الخدمات الحكومية الاستباقية في إستونيا
+- Mes Droits Sociaux في فرنسا
+- Tell Us Once في المملكة المتحدة
+- myGov User Audit في أستراليا
 
-test('Benchmark keeps deep research behind clickable cards', () => {
-  assert.match(html, /id="benchmarkModal"/);
-  assert.match(app, /data-benchmark-id/);
-  assert.match(app, /ليش بدأوا التجربة؟/);
-  assert.match(app, /وش سووا فعليا؟/);
-  assert.match(app, /وش كانت النتيجة؟/);
-  assert.match(app, /وش طبقنا منها في صلة؟/);
-});
+## الاختبارات
 
-test('Impact model is explicit about assumptions and supports sensitivity rates', () => {
-  assert.match(html, /سيناريو أثر، وليس Forecast/);
-  assert.match(html, /data-impact-rate="0\.03"/);
-  assert.match(html, /data-impact-rate="0\.05"/);
-  assert.match(html, /data-impact-rate="0\.10"/);
-  assert.match(app, /const quarterlyCalls = 526945/);
-  assert.match(app, /const minutesPerCall = 6/);
-});
+شغل:
 
-test('Long evidence sections use progressive disclosure to reduce page length', () => {
-  assert.match(html, /class="impact-method-details"/);
-  assert.match(html, /class="benchmark-matrix-details"/);
-  assert.match(html, /class="benchmark-insights-details"/);
-});
+```powershell
+npm test
+```
+
+أو:
+
+```powershell
+npm run check
+```
+
+النسخة الحالية تحتوي 154 اختبارا. منها Gold Set من 100 رسالة واقعية تغطي فهم النية، النفي، المراحل الزمنية، الأرقام العامية، فرق الدخل، الإحالة إلى آخر خدمة، أهلية الخدمة، الوظائف والعقود والضمان والخلافات العمالية. تم تشغيل المجموعة كاملة على مسار HTTP المحلي ونجحت 100 من 100 حالة.
+
+## النشر على GitHub
+
+المشروع جاهز للرفع بدون `.env`.
+
+اقرأ:
+
+```text
+GITHUB_PUBLISH.md
+```
+
+`.env` متجاهل في `.gitignore` و`.env.example` فقط هو الذي يرفع.
+
+GitHub Pages وحده لا يشغل `server.js`. النسخة الحية تحتاج استضافة Node.js مع `GROQ_API_KEY` كمتغير بيئة على الخادم.
+
+## الملفات المهمة
+
+- `START_HERE.md`: أقصر طريق للتشغيل
+- `SETUP_AND_START.cmd`: إعداد المفتاح وتشغيل المشروع على Windows
+- `server.js`: API والتنسيق بين الفهم والاسترجاع والقواعد
+- `src/nlu.js`: الأرقام العامية والنفي والمراحل والحقائق الحتمية
+- `src/retrieval.js`: اختيار الخدمات المرشحة بشكل محدود
+- `src/ai.js`: فهم اللغة عبر Groq عند الحاجة فقط
+- `src/rules.js`: محرك القواعد
+- `src/knowledge.js`: تحميل قاعدة المعرفة والقاموس
+- `data/language_glossary.json`: لغة المستخدم والمرادفات
+- `data/services.json`: كتالوج الخدمات
+- `docs/CHAT_ENGINE.md`: تصميم محرك المحادثة والمراجع
+- `public/`: الواجهة
+- `tests/`: اختبارات المنطق والمعمارية
+
+## البيانات
+
+كل الشخصيات والبيانات داخل النموذج افتراضية. القواعد المعروضة مبنية على مصادر رسمية منشورة داخل كتالوج الخدمات وملاحظات المصادر. النموذج لا يمثل قرار أهلية رسمي أو تفسيرا قانونيا رسميا.
 `````

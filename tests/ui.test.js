@@ -60,10 +60,14 @@ test('Digital Twin has an accessible on demand explanation', () => {
 test('Benchmark keeps deep research behind clickable cards', () => {
   assert.match(html, /id="benchmarkModal"/);
   assert.match(app, /data-benchmark-id/);
-  assert.match(app, /ليش بدأوا التجربة؟/);
-  assert.match(app, /وش سووا فعليا؟/);
-  assert.match(app, /وش كانت النتيجة؟/);
-  assert.match(app, /وش طبقنا منها في صلة؟/);
+  assert.match(app, /المشكلة اللي كانوا يحلونها/);
+  assert.match(app, /ليش بنوا الحل/);
+  assert.match(app, /وش بنوا فعليا/);
+  assert.match(app, /كيف تمشي الرحلة/);
+  assert.match(app, /كيف اشتغل التكامل/);
+  assert.match(app, /وش البيانات المستخدمة/);
+  assert.match(app, /التحديات والقيود/);
+  assert.match(app, /وش طبقناه فعليا في صلة/);
 });
 
 test('Impact model is explicit about assumptions and supports sensitivity rates', () => {
@@ -71,7 +75,7 @@ test('Impact model is explicit about assumptions and supports sensitivity rates'
   assert.match(html, /data-impact-rate="0\.03"/);
   assert.match(html, /data-impact-rate="0\.05"/);
   assert.match(html, /data-impact-rate="0\.10"/);
-  assert.match(app, /const quarterlyCalls = 501805/);
+  assert.match(app, /const quarterlyCalls = 526945/);
   assert.match(app, /const minutesPerCall = 6/);
 });
 
@@ -79,4 +83,23 @@ test('Long evidence sections use progressive disclosure to reduce page length', 
   assert.match(html, /class="impact-method-details"/);
   assert.match(html, /class="benchmark-matrix-details"/);
   assert.match(html, /class="benchmark-insights-details"/);
+});
+
+
+test('Every benchmark has executive research layers and official sources', () => {
+  for (const item of benchmarks) {
+    for (const key of ['problem', 'whyBuilt', 'journey', 'design', 'integration', 'dataUsed', 'results', 'challenges', 'lessons', 'appliedToSilah']) {
+      assert.ok(item[key], `${item.id} missing ${key}`);
+      if (Array.isArray(item[key])) assert.ok(item[key].length > 0, `${item.id} empty ${key}`);
+    }
+    assert.ok(item.sources?.length > 0, `${item.id} missing sources`);
+  }
+});
+
+test('Impact baseline is Q2 2026 and matches the documented call volume', () => {
+  assert.match(html, /الربع الثاني 2026/);
+  assert.match(html, /757,960/);
+  assert.match(html, /526,945/);
+  assert.match(html, /58,661/);
+  assert.match(html, /172,354/);
 });

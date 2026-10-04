@@ -449,6 +449,18 @@ body.modal-open{overflow:hidden}
 .benchmark-story-block b{display:block;font-size:11px;margin-bottom:6px}
 .benchmark-story-block p{margin:0;color:var(--ink-2);font-size:10.5px;line-height:1.85}
 .benchmark-story-block ul{margin:0;padding:0 17px 0 0;color:var(--ink-2);font-size:10.5px;line-height:1.85}
+.benchmark-modal-eyebrows .review-note{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.benchmark-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:4px 0 15px}
+.benchmark-detail-card{padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--surface-2)}
+.benchmark-detail-card b{display:block;margin-bottom:7px;font-size:10.5px;color:var(--ink)}
+.benchmark-detail-card ul,.benchmark-learning-card ul{margin:0;padding:0 17px 0 0;color:var(--ink-2);font-size:10px;line-height:1.8}
+.benchmark-detail-card p{margin:0;color:var(--muted);font-size:10px;line-height:1.7}
+.benchmark-challenges-block>span{background:#fff4e8;color:#8a4b08}
+.benchmark-learning-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:4px 0 16px}
+.benchmark-learning-card{padding:15px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.benchmark-learning-card.applied{background:var(--green-soft);border-color:rgba(19,116,72,.16)}
+.benchmark-learning-card h4{margin:5px 0 8px;font-size:12px}
+
 .benchmark-caution-box{padding:13px 14px;border:1px solid #ead7ad;border-radius:12px;background:var(--warning-soft)}
 .benchmark-caution-box b{display:block;color:#725419;font-size:10px}
 .benchmark-caution-box p{margin:5px 0 0;color:#6b5b36;font-size:9.5px;line-height:1.7}
@@ -465,7 +477,7 @@ body.modal-open{overflow:hidden}
 @media(max-width:760px){
   .chat-topbar{align-items:flex-start}.chat-top-actions{justify-content:flex-start}
   .impact-voice-head{flex-direction:column}.impact-scenario-card{grid-template-columns:1fr}.impact-assumption{grid-column:auto}
-  .benchmark-compact-grid{grid-template-columns:1fr 1fr}.applied-patterns{grid-template-columns:1fr 1fr}.benchmark-modal-metrics{grid-template-columns:1fr 1fr}
+  .benchmark-compact-grid{grid-template-columns:1fr 1fr}.applied-patterns{grid-template-columns:1fr 1fr}.benchmark-modal-metrics{grid-template-columns:1fr 1fr}.benchmark-detail-grid,.benchmark-learning-grid{grid-template-columns:1fr}
 }
 @media(max-width:500px){
   .benchmark-compact-grid,.applied-patterns,.voice-metrics{grid-template-columns:1fr}

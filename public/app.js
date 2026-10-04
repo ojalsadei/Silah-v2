@@ -604,6 +604,21 @@ function benchmarkById(id) {
   return state.bootstrap?.benchmarks?.find(item => item.id === id) || null;
 }
 
+function benchmarkList(values = []) {
+  return values.length
+    ? `<ul>${values.map(value => `<li>${escapeHtml(value)}</li>`).join('')}</ul>`
+    : '<p>لا توجد تفاصيل منشورة كافية في المصادر المستخدمة.</p>';
+}
+
+function benchmarkDetailCard(title, values = []) {
+  return `
+    <article class="benchmark-detail-card">
+      <b>${escapeHtml(title)}</b>
+      ${benchmarkList(values)}
+    </article>
+  `;
+}
+
 function openBenchmarkModal(id) {
   const item = benchmarkById(id);
   if (!item || !benchmarkModal || !benchmarkModalContent) return;
@@ -611,9 +626,10 @@ function openBenchmarkModal(id) {
   const metrics = (item.metrics || []).map(metric => `
     <div><small>${escapeHtml(metric.label)}</small><strong>${escapeHtml(metric.value)}</strong></div>
   `).join('');
-  const built = (item.whatTheyBuilt || []).map(value => `<li>${escapeHtml(value)}</li>`).join('');
-  const results = (item.results || []).map(value => `<li>${escapeHtml(value)}</li>`).join('');
-  const applied = (item.appliedToSilah || []).map(value => `<li>${escapeHtml(value)}</li>`).join('');
+  const results = benchmarkList(item.results || []);
+  const challenges = benchmarkList(item.challenges || []);
+  const lessons = benchmarkList(item.lessons || []);
+  const applied = benchmarkList(item.appliedToSilah || []);
   const sources = (item.sources || []).map(source => `
     <a href="${linkSafe(source.url)}" target="_blank" rel="noopener">${escapeHtml(source.label)} ↗</a>
   `).join('');
@@ -621,8 +637,9 @@ function openBenchmarkModal(id) {
   benchmarkModalContent.innerHTML = `
     <div class="benchmark-modal-eyebrows">
       <span>${escapeHtml(item.country)}</span>
-      ${item.historical ? '<span class="historical-note">نتائج تاريخية موضحة داخل البطاقة</span>' : ''}
+      ${item.historical ? '<span class="historical-note">الأرقام التاريخية موضحة بوضوح</span>' : ''}
       ${item.cautionCard ? '<span class="caution-note">تجربة تحذيرية للتكامل</span>' : ''}
+      <span class="review-note">مراجعة ${escapeHtml(item.sourceDate || '')}</span>
     </div>
     <h3 id="benchmarkModalTitle">${escapeHtml(item.name)}</h3>
     <p class="benchmark-modal-headline">${escapeHtml(item.headline)}</p>
@@ -633,26 +650,49 @@ function openBenchmarkModal(id) {
 
     <div class="benchmark-story-block">
       <span>01</span>
-      <div><b>ليش بدأوا التجربة؟</b><p>${escapeHtml(item.why || '')}</p></div>
+      <div><b>المشكلة اللي كانوا يحلونها</b><p>${escapeHtml(item.problem || item.why || '')}</p></div>
     </div>
     <div class="benchmark-story-block">
       <span>02</span>
-      <div><b>وش سووا فعليا؟</b><ul>${built}</ul></div>
+      <div><b>ليش بنوا الحل</b><p>${escapeHtml(item.whyBuilt || item.why || '')}</p></div>
     </div>
+
+    <div class="benchmark-detail-grid">
+      ${benchmarkDetailCard('وش بنوا فعليا', item.whatTheyBuilt || [])}
+      ${benchmarkDetailCard('كيف تمشي الرحلة', item.journey || [])}
+      ${benchmarkDetailCard('كيف صمموا التجربة', item.design || [])}
+      ${benchmarkDetailCard('كيف اشتغل التكامل', item.integration || [])}
+      ${benchmarkDetailCard('وش البيانات المستخدمة', item.dataUsed || [])}
+    </div>
+
     <div class="benchmark-story-block">
       <span>03</span>
-      <div><b>وش كانت النتيجة؟</b><ul>${results}</ul></div>
+      <div><b>النتائج والأرقام المنشورة</b>${results}</div>
     </div>
-    <div class="benchmark-story-block applied">
+    <div class="benchmark-story-block benchmark-challenges-block">
       <span>04</span>
-      <div><b>وش طبقنا منها في صلة؟</b><ul>${applied}</ul></div>
+      <div><b>التحديات والقيود</b>${challenges}</div>
     </div>
+
+    <div class="benchmark-learning-grid">
+      <article class="benchmark-learning-card">
+        <span class="micro-label">الدروس لصلة</span>
+        <h4>وش نتعلم من التجربة</h4>
+        ${lessons}
+      </article>
+      <article class="benchmark-learning-card applied">
+        <span class="micro-label">مطبق في النموذج</span>
+        <h4>وش طبقناه فعليا في صلة</h4>
+        ${applied}
+      </article>
+    </div>
+
     <div class="benchmark-caution-box">
-      <b>وش ننتبه له؟</b>
+      <b>وش ما نبي نكرر أو نفترض</b>
       <p>${escapeHtml(item.caution || '')}</p>
     </div>
     <div class="benchmark-source-block">
-      <b>المصادر</b>
+      <b>المصادر الرسمية</b>
       <div>${sources}</div>
     </div>
   `;
@@ -740,7 +780,7 @@ function renderBenchmarks(items) {
 }
 
 function updateImpactScenario(rate = 0.05) {
-  const quarterlyCalls = 501805;
+  const quarterlyCalls = 526945;
   const minutesPerCall = 6;
   const callsQuarter = Math.round(quarterlyCalls * rate);
   const hoursQuarter = Math.round((callsQuarter * minutesPerCall) / 60);
