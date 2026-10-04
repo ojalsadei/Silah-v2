@@ -1,0 +1,1220 @@
+[
+  {
+    "id": 1,
+    "persona": "khalid",
+    "category": "اكتشاف الخدمات",
+    "message": "وش الخدمات اللي تخصني؟",
+    "expected": {
+      "intent": "current_services"
+    }
+  },
+  {
+    "id": 2,
+    "persona": "salman",
+    "category": "اكتشاف الخدمات",
+    "message": "وش الخدمات اللي اقدر استفيد منها؟",
+    "expected": {
+      "intent": "eligible_services"
+    }
+  },
+  {
+    "id": 3,
+    "persona": "reem",
+    "category": "ملخص الحالة",
+    "message": "وش وضعي الحالي؟",
+    "expected": {
+      "intent": "status_summary"
+    }
+  },
+  {
+    "id": 4,
+    "persona": "khalid",
+    "category": "التغييرات",
+    "message": "وش تغير في بياناتي؟",
+    "expected": {
+      "intent": "what_changed"
+    }
+  },
+  {
+    "id": 5,
+    "persona": "noura",
+    "category": "ملخص الحالة",
+    "message": "وش تعرف عني؟",
+    "expected": {
+      "intent": "status_summary"
+    }
+  },
+  {
+    "id": 6,
+    "persona": "saleh",
+    "category": "اكتشاف الخدمات",
+    "message": "وش ممكن يفيدني الحين؟",
+    "expected": {
+      "intent": "eligible_services"
+    }
+  },
+  {
+    "id": 7,
+    "persona": "salman",
+    "category": "اكتشاف الخدمات",
+    "message": "انا عاطل وادور وظيفة، وش الأشياء اللي ممكن تساعدني؟",
+    "expected": {
+      "intent": "eligible_services"
+    }
+  },
+  {
+    "id": 8,
+    "persona": "reem",
+    "category": "الخدمات الحالية",
+    "message": "وش عندي خدمات حاليا؟",
+    "expected": {
+      "intent": "current_services"
+    }
+  },
+  {
+    "id": 9,
+    "persona": "khalid",
+    "category": "التنبيهات",
+    "message": "هل فيه شيء يحتاج انتباهي؟",
+    "expected": {
+      "intent": "attention_summary"
+    }
+  },
+  {
+    "id": 10,
+    "persona": "saleh",
+    "category": "التغييرات",
+    "message": "ورني آخر التحديثات",
+    "expected": {
+      "intent": "what_changed"
+    }
+  },
+  {
+    "id": 11,
+    "persona": "salman",
+    "category": "تأكيد الأهلية",
+    "message": "يعني انا مؤهل اكيد؟",
+    "expected": {
+      "intent": "eligibility_confirmation",
+      "targetServiceId": "job_search_subsidy"
+    },
+    "previousState": {
+      "intent": "eligible_services",
+      "lastResults": [
+        {
+          "serviceId": "job_search_subsidy",
+          "title": "إعانة البحث عن عمل",
+          "why": "تطابق أولي",
+          "unknowns": [
+            "الثروة",
+            "التواريخ وسجل الاستفادة السابق"
+          ]
+        }
+      ],
+      "lastChanges": []
+    }
+  },
+  {
+    "id": 12,
+    "persona": "salman",
+    "category": "تأكيد الأهلية",
+    "message": "طيب تنطبق علي؟",
+    "expected": {
+      "intent": "eligibility_confirmation",
+      "targetServiceId": "job_search_subsidy"
+    },
+    "previousState": {
+      "intent": "eligible_services",
+      "lastResults": [
+        {
+          "serviceId": "job_search_subsidy",
+          "title": "إعانة البحث عن عمل",
+          "why": "تطابق أولي",
+          "unknowns": [
+            "الثروة",
+            "التواريخ وسجل الاستفادة السابق"
+          ]
+        }
+      ],
+      "lastChanges": []
+    }
+  },
+  {
+    "id": 13,
+    "persona": "salman",
+    "category": "شرح نتيجة",
+    "message": "ليش ظهرت لي إعانة البحث عن عمل؟",
+    "expected": {
+      "intent": "explain_result",
+      "targetServiceId": "job_search_subsidy"
+    },
+    "previousState": {
+      "intent": "eligible_services",
+      "lastResults": [
+        {
+          "serviceId": "job_search_subsidy",
+          "title": "إعانة البحث عن عمل",
+          "why": "تطابق أولي",
+          "unknowns": [
+            "الثروة",
+            "التواريخ وسجل الاستفادة السابق"
+          ]
+        }
+      ],
+      "lastChanges": []
+    }
+  },
+  {
+    "id": 14,
+    "persona": "saleh",
+    "category": "شرح نتيجة",
+    "message": "ليش جتني بطاقة كبار السن؟",
+    "expected": {
+      "intent": "explain_result",
+      "targetServiceId": "senior_privilege_card"
+    },
+    "previousState": {
+      "intent": "eligible_services",
+      "lastResults": [
+        {
+          "serviceId": "senior_privilege_card",
+          "title": "بطاقة امتياز لكبار السن",
+          "why": "العمر والجنسية",
+          "unknowns": [
+            "حالة الإصدار الفعلية"
+          ]
+        }
+      ],
+      "lastChanges": []
+    }
+  },
+  {
+    "id": 15,
+    "persona": "saleh",
+    "category": "حالة خدمة",
+    "message": "هل البطاقة صدرت لي فعلا؟",
+    "expected": {
+      "intent": "service_status_question",
+      "targetServiceId": "senior_privilege_card"
+    },
+    "previousState": {
+      "intent": "eligible_services",
+      "lastResults": [
+        {
+          "serviceId": "senior_privilege_card",
+          "title": "بطاقة امتياز لكبار السن",
+          "why": "العمر والجنسية",
+          "unknowns": [
+            "حالة الإصدار الفعلية"
+          ]
+        }
+      ],
+      "lastChanges": []
+    }
+  },
+  {
+    "id": 16,
+    "persona": "reem",
+    "category": "سؤال خدمة",
+    "message": "هل وصول يناسبني؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "wusool"
+    }
+  },
+  {
+    "id": 17,
+    "persona": "reem",
+    "category": "التقديم على خدمة",
+    "message": "طيب اقدر اقدم عليه؟",
+    "expected": {
+      "intent": "service_application_question",
+      "targetServiceId": "wusool"
+    },
+    "previousState": {
+      "intent": "service_question",
+      "targetServiceIds": [
+        "wusool"
+      ],
+      "lastResults": [
+        {
+          "serviceId": "wusool",
+          "title": "دعم النقل وصول",
+          "why": "بيانات مرتبطة",
+          "unknowns": []
+        }
+      ],
+      "lastChanges": []
+    }
+  },
+  {
+    "id": 18,
+    "persona": "noura",
+    "category": "تأكيد الأهلية",
+    "message": "انا مؤهلة للاعانة أكيد؟",
+    "expected": {
+      "intent": "eligibility_confirmation",
+      "targetServiceId": "disability_financial_aid"
+    },
+    "previousState": {
+      "intent": "eligible_services",
+      "lastResults": [
+        {
+          "serviceId": "disability_financial_aid",
+          "title": "الإعانة المالية للأشخاص ذوي الإعاقة",
+          "why": "تقييم الإعاقة والدخل",
+          "unknowns": [
+            "التحقق الرسمي"
+          ]
+        }
+      ],
+      "lastChanges": []
+    }
+  },
+  {
+    "id": 19,
+    "persona": "khalid",
+    "category": "شرح أثر",
+    "message": "ليش الضمان ممكن يتأثر؟",
+    "expected": {
+      "intent": "explain_effect",
+      "targetServiceId": "social_security"
+    },
+    "previousState": {
+      "intent": "new_job",
+      "mode": "what_if",
+      "salary": 6500,
+      "jobStage": "accepted",
+      "replacesCurrentJob": true,
+      "lastResults": [
+        {
+          "serviceId": "social_security",
+          "title": "الضمان الاجتماعي",
+          "why": "إذا بدأ الدخل الجديد قد يتغير مبلغ المعاش أو الاستحقاق",
+          "unknowns": [
+            "بقية بيانات الأسرة"
+          ]
+        }
+      ],
+      "lastChanges": []
+    }
+  },
+  {
+    "id": 20,
+    "persona": "khalid",
+    "category": "شرح نتيجة",
+    "message": "ليش قلت لي كذا؟",
+    "expected": {
+      "intent": "explain_result",
+      "targetServiceId": "social_security"
+    },
+    "previousState": {
+      "intent": "new_job",
+      "mode": "what_if",
+      "salary": 6500,
+      "jobStage": "accepted",
+      "replacesCurrentJob": true,
+      "lastResults": [
+        {
+          "serviceId": "social_security",
+          "title": "الضمان الاجتماعي",
+          "why": "إذا بدأ الدخل الجديد قد يتغير مبلغ المعاش أو الاستحقاق",
+          "unknowns": [
+            "بقية بيانات الأسرة"
+          ]
+        }
+      ],
+      "lastChanges": []
+    }
+  },
+  {
+    "id": 21,
+    "persona": "khalid",
+    "category": "أرقام عامية",
+    "message": "راتبي بيصير 7",
+    "expected": {
+      "intent": "income_change",
+      "income": 7000,
+      "needsConfirmation": true
+    }
+  },
+  {
+    "id": 22,
+    "persona": "khalid",
+    "category": "أرقام عامية",
+    "message": "راتبي بيصير سبعة",
+    "expected": {
+      "intent": "income_change",
+      "income": 7000,
+      "needsConfirmation": true
+    }
+  },
+  {
+    "id": 23,
+    "persona": "khalid",
+    "category": "أرقام عامية",
+    "message": "راتبي بيصير سبعة الاف",
+    "expected": {
+      "intent": "income_change",
+      "income": 7000,
+      "needsConfirmation": false
+    }
+  },
+  {
+    "id": 24,
+    "persona": "khalid",
+    "category": "أرقام عربية",
+    "message": "راتبي صار ٦٥٠٠",
+    "expected": {
+      "intent": "income_change",
+      "income": 6500,
+      "mode": "reported"
+    }
+  },
+  {
+    "id": 25,
+    "persona": "khalid",
+    "category": "كسور عامية",
+    "message": "راتبي نزل لأربعة ونص",
+    "expected": {
+      "intent": "income_change",
+      "income": 4500,
+      "needsConfirmation": false
+    }
+  },
+  {
+    "id": 26,
+    "persona": "khalid",
+    "category": "كسور رقمية",
+    "message": "دخلي صار 4.5",
+    "expected": {
+      "intent": "income_change",
+      "income": 4500,
+      "needsConfirmation": false
+    }
+  },
+  {
+    "id": 27,
+    "persona": "khalid",
+    "category": "ألف صريح",
+    "message": "راتبي زاد وصار 8 الاف",
+    "expected": {
+      "intent": "income_change",
+      "income": 8000,
+      "needsConfirmation": false
+    }
+  },
+  {
+    "id": 28,
+    "persona": "khalid",
+    "category": "فرق دخل",
+    "message": "راتبي انخفض 500 ريال",
+    "expected": {
+      "intent": "income_delta",
+      "delta": -500
+    }
+  },
+  {
+    "id": 29,
+    "persona": "khalid",
+    "category": "فرق دخل",
+    "message": "زاد راتبي 1000",
+    "expected": {
+      "intent": "income_delta",
+      "delta": 1000
+    }
+  },
+  {
+    "id": 30,
+    "persona": "khalid",
+    "category": "أرقام عامية",
+    "message": "راتبي ٧ آلاف ونص",
+    "expected": {
+      "intent": "income_change",
+      "income": 7500,
+      "needsConfirmation": false
+    }
+  },
+  {
+    "id": 31,
+    "persona": "khalid",
+    "category": "أرقام عامية",
+    "message": "صار دخلي اثنعش ونص",
+    "expected": {
+      "intent": "income_change",
+      "income": 12500,
+      "needsConfirmation": false
+    }
+  },
+  {
+    "id": 32,
+    "persona": "khalid",
+    "category": "صيغة مختصرة",
+    "message": "راتبي صار 12.5k",
+    "expected": {
+      "intent": "income_change",
+      "income": 12500,
+      "needsConfirmation": false
+    }
+  },
+  {
+    "id": 33,
+    "persona": "salman",
+    "category": "مصدر دخل",
+    "message": "صار يجيني 2500 بالشهر",
+    "expected": {
+      "intent": "income_change",
+      "income": 2500,
+      "requiresClarification": "income_source"
+    }
+  },
+  {
+    "id": 34,
+    "persona": "salman",
+    "category": "مصدر دخل",
+    "message": "دخل علي 2500 من شغل حر",
+    "expected": {
+      "intent": "income_change",
+      "income": 2500,
+      "incomeSource": "self_employment"
+    }
+  },
+  {
+    "id": 35,
+    "persona": "salman",
+    "category": "مصدر دخل",
+    "message": "جاني راتب 2500 من وظيفة",
+    "expected": {
+      "intent": "new_job",
+      "salary": 2500,
+      "requiresClarification": "job_stage"
+    }
+  },
+  {
+    "id": 36,
+    "persona": "khalid",
+    "category": "وظيفة جديدة",
+    "message": "جاني شغل بستة ونص ووافقت بس للحين ما باشرت",
+    "expected": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "accepted",
+      "started": false
+    }
+  },
+  {
+    "id": 37,
+    "persona": "khalid",
+    "category": "نفي الموافقة",
+    "message": "جاني عرض ب6500 بس ما وافقت عليه",
+    "expected": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "reviewing",
+      "accepted": false
+    }
+  },
+  {
+    "id": 38,
+    "persona": "khalid",
+    "category": "رفض العرض",
+    "message": "جاني عرض ب6500 ورفضته",
+    "expected": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "rejected"
+    }
+  },
+  {
+    "id": 39,
+    "persona": "khalid",
+    "category": "طلب تعديل",
+    "message": "طلبت منهم يعدلون العرض",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "modification_requested"
+    },
+    "previousState": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "reviewing"
+    }
+  },
+  {
+    "id": 40,
+    "persona": "khalid",
+    "category": "الموافقة",
+    "message": "وقعت العرض",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "accepted"
+    }
+  },
+  {
+    "id": 41,
+    "persona": "khalid",
+    "category": "الموافقة",
+    "message": "وافقت من جهتي",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "accepted"
+    }
+  },
+  {
+    "id": 42,
+    "persona": "khalid",
+    "category": "التوثيق",
+    "message": "توثق العقد بس ما باشرت",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "documented",
+      "started": false
+    }
+  },
+  {
+    "id": 43,
+    "persona": "khalid",
+    "category": "المباشرة",
+    "message": "باشرت اليوم",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "started"
+    },
+    "previousState": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "accepted",
+      "replacesCurrentJob": true
+    }
+  },
+  {
+    "id": 44,
+    "persona": "khalid",
+    "category": "المباشرة",
+    "message": "داومت أول يوم",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "started"
+    },
+    "previousState": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "accepted",
+      "replacesCurrentJob": true
+    }
+  },
+  {
+    "id": 45,
+    "persona": "khalid",
+    "category": "تاريخ مستقبلي",
+    "message": "العقد الجديد يبدأ الشهر الجاي",
+    "expected": {
+      "intent": "new_job",
+      "mode": "what_if",
+      "jobStage": "documented"
+    }
+  },
+  {
+    "id": 46,
+    "persona": "khalid",
+    "category": "عرض تحت الدراسة",
+    "message": "جاني عرض بس ما ادري اوافق",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "reviewing"
+    }
+  },
+  {
+    "id": 47,
+    "persona": "khalid",
+    "category": "افتراض موافقة",
+    "message": "لو قبلت عرض ب9000 وش بيتغير؟",
+    "expected": {
+      "intent": "new_job",
+      "mode": "what_if",
+      "salary": 9000,
+      "jobStage": "accepted"
+    }
+  },
+  {
+    "id": 48,
+    "persona": "khalid",
+    "category": "افتراض مباشرة",
+    "message": "إذا باشرت على 9000 وش يصير؟",
+    "expected": {
+      "intent": "new_job",
+      "mode": "what_if",
+      "salary": 9000,
+      "jobStage": "started"
+    }
+  },
+  {
+    "id": 49,
+    "persona": "khalid",
+    "category": "استبدال وظيفة",
+    "message": "الوظيفة الجديدة بديلة عن الحالية",
+    "expected": {
+      "intent": "new_job",
+      "replacesCurrentJob": true
+    },
+    "previousState": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "accepted"
+    }
+  },
+  {
+    "id": 50,
+    "persona": "khalid",
+    "category": "وظيفتان",
+    "message": "بكمل في وظيفتي الحالية مع الجديدة",
+    "expected": {
+      "intent": "new_job",
+      "replacesCurrentJob": false
+    },
+    "previousState": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "accepted"
+    }
+  },
+  {
+    "id": 51,
+    "persona": "khalid",
+    "category": "استبدال وظيفة",
+    "message": "بطلع من شركتي واروح الجديدة",
+    "expected": {
+      "intent": "new_job",
+      "replacesCurrentJob": true
+    },
+    "previousState": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "accepted"
+    }
+  },
+  {
+    "id": 52,
+    "persona": "khalid",
+    "category": "وظيفتان",
+    "message": "ما راح اترك وظيفتي الحالية",
+    "expected": {
+      "intent": "new_job",
+      "replacesCurrentJob": false
+    },
+    "previousState": {
+      "intent": "new_job",
+      "salary": 6500,
+      "jobStage": "accepted"
+    }
+  },
+  {
+    "id": 53,
+    "persona": "khalid",
+    "category": "نفي توقيع",
+    "message": "جاني عقد جديد بس ما وقعت",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "reviewing",
+      "accepted": false
+    }
+  },
+  {
+    "id": 54,
+    "persona": "khalid",
+    "category": "طلب تعديل",
+    "message": "وصلني عقد وطلبت تعديل الراتب",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "modification_requested"
+    }
+  },
+  {
+    "id": 55,
+    "persona": "khalid",
+    "category": "تراجع عن قرار",
+    "message": "وافقت وبعدها غيرت رأيي",
+    "expected": {
+      "intent": "new_job",
+      "jobStage": "ambiguous",
+      "requiresClarification": "current_offer_status"
+    }
+  },
+  {
+    "id": 56,
+    "persona": "khalid",
+    "category": "استقالة مستقبلية",
+    "message": "بفكر استقيل",
+    "expected": {
+      "intent": "employment_end",
+      "mode": "what_if",
+      "endStage": "planned",
+      "endReason": "resignation"
+    }
+  },
+  {
+    "id": 57,
+    "persona": "khalid",
+    "category": "استقالة فعلية",
+    "message": "استقلت اليوم",
+    "expected": {
+      "intent": "employment_end",
+      "mode": "reported",
+      "endStage": "ended",
+      "endReason": "resignation"
+    }
+  },
+  {
+    "id": 58,
+    "persona": "khalid",
+    "category": "فصل",
+    "message": "الشركة فصلتني",
+    "expected": {
+      "intent": "employment_end",
+      "mode": "reported",
+      "endStage": "ended",
+      "endReason": "unknown"
+    }
+  },
+  {
+    "id": 59,
+    "persona": "khalid",
+    "category": "انتهاء مدة",
+    "message": "عقدي خلص أمس",
+    "expected": {
+      "intent": "employment_end",
+      "mode": "reported",
+      "endStage": "ended",
+      "endReason": "fixed_expiry"
+    }
+  },
+  {
+    "id": 60,
+    "persona": "khalid",
+    "category": "انتهاء مستقبلي",
+    "message": "عقدي بينتهي الشهر الجاي",
+    "expected": {
+      "intent": "employment_end",
+      "mode": "what_if",
+      "endStage": "planned",
+      "endReason": "fixed_expiry"
+    }
+  },
+  {
+    "id": 61,
+    "persona": "khalid",
+    "category": "إغلاق منشأة",
+    "message": "الشركة قفلت",
+    "expected": {
+      "intent": "employment_end",
+      "mode": "reported",
+      "endStage": "ended",
+      "endReason": "business_closed"
+    }
+  },
+  {
+    "id": 62,
+    "persona": "khalid",
+    "category": "تراضي",
+    "message": "اتفقنا ننهي العقد بالتراضي",
+    "expected": {
+      "intent": "employment_end",
+      "endStage": "ended",
+      "endReason": "mutual"
+    }
+  },
+  {
+    "id": 63,
+    "persona": "khalid",
+    "category": "إشعار إنهاء",
+    "message": "جاني إشعار إنهاء بس للحين أداوم",
+    "expected": {
+      "intent": "employment_end",
+      "endStage": "planned",
+      "endReason": "employer_termination"
+    }
+  },
+  {
+    "id": 64,
+    "persona": "khalid",
+    "category": "نفي الانتهاء",
+    "message": "ما انتهى عقدي",
+    "expected": {
+      "intent": "employment_end_negated",
+      "ended": false
+    }
+  },
+  {
+    "id": 65,
+    "persona": "khalid",
+    "category": "نفي الانتهاء",
+    "message": "عقدي ما خلص",
+    "expected": {
+      "intent": "employment_end_negated",
+      "ended": false
+    }
+  },
+  {
+    "id": 66,
+    "persona": "khalid",
+    "category": "فترة تجربة",
+    "message": "انتهت التجربة وما كملوا معي",
+    "expected": {
+      "intent": "employment_end",
+      "endStage": "ended",
+      "endReason": "unknown"
+    }
+  },
+  {
+    "id": 67,
+    "persona": "khalid",
+    "category": "فصل بسبب مخالفة",
+    "message": "فصلوني بسبب مخالفة",
+    "expected": {
+      "intent": "employment_end",
+      "endStage": "ended",
+      "endReason": "employer_termination_misconduct"
+    }
+  },
+  {
+    "id": 68,
+    "persona": "reem",
+    "category": "الضمان",
+    "message": "هل الضمان ممكن يناسبني؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "social_security"
+    }
+  },
+  {
+    "id": 69,
+    "persona": "reem",
+    "category": "التقديم للضمان",
+    "message": "ابي اسجل في الضمان",
+    "expected": {
+      "intent": "service_application_question",
+      "targetServiceId": "social_security"
+    }
+  },
+  {
+    "id": 70,
+    "persona": "reem",
+    "category": "التقديم للضمان",
+    "message": "انا مو مستفيد ضمان، اقدر اقدم؟",
+    "expected": {
+      "intent": "service_application_question",
+      "targetServiceId": "social_security"
+    }
+  },
+  {
+    "id": 71,
+    "persona": "reem",
+    "category": "أهلية الضمان",
+    "message": "هل انا مؤهل للضمان؟",
+    "expected": {
+      "intent": "eligibility_confirmation",
+      "targetServiceId": "social_security"
+    }
+  },
+  {
+    "id": 72,
+    "persona": "khalid",
+    "category": "أثر الدخل على الضمان",
+    "message": "هل زيادة راتبي توقف الضمان؟",
+    "expected": {
+      "intent": "social_security_impact",
+      "mode": "what_if",
+      "targetServiceId": "social_security"
+    }
+  },
+  {
+    "id": 73,
+    "persona": "khalid",
+    "category": "أثر انخفاض الدخل",
+    "message": "راتبي نزل هل ينقطع الضمان؟",
+    "expected": {
+      "intent": "social_security_impact",
+      "targetServiceId": "social_security",
+      "forbidConclusion": "loss_due_to_decrease_alone"
+    }
+  },
+  {
+    "id": 74,
+    "persona": "khalid",
+    "category": "حساب المعاش",
+    "message": "كم بيصير معاشي؟",
+    "expected": {
+      "intent": "benefit_amount_question",
+      "targetServiceId": "social_security"
+    }
+  },
+  {
+    "id": 75,
+    "persona": "khalid",
+    "category": "شرح ظهور خدمة",
+    "message": "ليش الضمان عندي ظاهر؟",
+    "expected": {
+      "intent": "explain_result",
+      "targetServiceId": "social_security"
+    }
+  },
+  {
+    "id": 76,
+    "persona": "khalid",
+    "category": "اعتراض ضمان",
+    "message": "الضمان توقف عندي، كيف اعترض؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "social_security_objection"
+    }
+  },
+  {
+    "id": 77,
+    "persona": "reem",
+    "category": "عدم أهلية ضمان",
+    "message": "جاني غير مؤهل في الضمان",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "social_security_objection"
+    }
+  },
+  {
+    "id": 78,
+    "persona": "reem",
+    "category": "دخل إضافي",
+    "message": "هل اقدر اقدم اذا عندي دخل ثاني؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "social_security"
+    }
+  },
+  {
+    "id": 79,
+    "persona": "reem",
+    "category": "ضمان بعد فقد وظيفة",
+    "message": "اذا انفصلت من الوظيفة هل الضمان يصير مناسب؟",
+    "expected": {
+      "intent": "multi_intent",
+      "mode": "what_if",
+      "targetServiceIds": [
+        "social_security",
+        "employment_end"
+      ]
+    }
+  },
+  {
+    "id": 80,
+    "persona": "salman",
+    "category": "باحث عن عمل",
+    "message": "انا عاطل وادور وظيفة وش يساعدني؟",
+    "expected": {
+      "intent": "eligible_services"
+    }
+  },
+  {
+    "id": 81,
+    "persona": "salman",
+    "category": "مصطلح حافز",
+    "message": "وش هو حافز؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "job_search_subsidy"
+    }
+  },
+  {
+    "id": 82,
+    "persona": "salman",
+    "category": "مصطلح حافز",
+    "message": "هل حافز ينفع لي؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "job_search_subsidy"
+    }
+  },
+  {
+    "id": 83,
+    "persona": "salman",
+    "category": "تمهير",
+    "message": "ابي تمهير",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "tamheer"
+    }
+  },
+  {
+    "id": 84,
+    "persona": "salman",
+    "category": "أهلية تمهير",
+    "message": "انا مؤهل لتمهير؟",
+    "expected": {
+      "intent": "eligibility_confirmation",
+      "targetServiceId": "tamheer"
+    }
+  },
+  {
+    "id": 85,
+    "persona": "salman",
+    "category": "تدريب",
+    "message": "ابي دورة تطورني",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "doroob"
+    }
+  },
+  {
+    "id": 86,
+    "persona": "salman",
+    "category": "إرشاد مهني",
+    "message": "ابي اعرف وش تخصص يناسبني",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "career_guidance_sobol"
+    }
+  },
+  {
+    "id": 87,
+    "persona": "salman",
+    "category": "شهادة احترافية",
+    "message": "عندي شهادة احترافية اقدر استرجع قيمتها؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "professional_certificates"
+    }
+  },
+  {
+    "id": 88,
+    "persona": "salman",
+    "category": "استبعاد طالب",
+    "message": "انا طالب جامعة اقدر اخذ اعانة بحث عن عمل؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "job_search_subsidy",
+      "expectedEligibility": "not_applicable_if_current_student"
+    }
+  },
+  {
+    "id": 89,
+    "persona": "khalid",
+    "category": "استبعاد موظف",
+    "message": "انا موظف اقدر اخذ اعانة بحث عن عمل؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "job_search_subsidy",
+      "expectedEligibility": "not_applicable_if_employed"
+    }
+  },
+  {
+    "id": 90,
+    "persona": "reem",
+    "category": "قرة",
+    "message": "عندي طفل عمره 3 سنوات هل قرة تناسبني؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "qurra"
+    }
+  },
+  {
+    "id": 91,
+    "persona": "reem",
+    "category": "قرة وحد الدخل",
+    "message": "راتبي 8500 هل قرة تنفع؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "qurra"
+    }
+  },
+  {
+    "id": 92,
+    "persona": "reem",
+    "category": "قرة ماذا لو",
+    "message": "لو نزل راتبي 7500 هل قرة ممكن تناسبني؟",
+    "expected": {
+      "intent": "service_question",
+      "mode": "what_if",
+      "targetServiceId": "qurra",
+      "income": 7500
+    }
+  },
+  {
+    "id": 93,
+    "persona": "reem",
+    "category": "وصول",
+    "message": "هل وصول يناسبني؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "wusool"
+    }
+  },
+  {
+    "id": 94,
+    "persona": "reem",
+    "category": "وصول ماذا لو",
+    "message": "لو راتبي 7500 اقدر استفيد من وصول؟",
+    "expected": {
+      "intent": "service_question",
+      "mode": "what_if",
+      "targetServiceId": "wusool",
+      "income": 7500
+    }
+  },
+  {
+    "id": 95,
+    "persona": "reem",
+    "category": "وصول والتأمينات",
+    "message": "انا مو مسجلة بالتأمينات هل وصول ينفع؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "wusool",
+      "expectedEligibility": "not_applicable_without_gosi"
+    }
+  },
+  {
+    "id": 96,
+    "persona": "noura",
+    "category": "الإعاقة",
+    "message": "وش خدمات الإعاقة اللي تخصني؟",
+    "expected": {
+      "intent": "disability_support"
+    }
+  },
+  {
+    "id": 97,
+    "persona": "noura",
+    "category": "شرح تسهيلات",
+    "message": "ليش طلعت لي التسهيلات المرورية؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "traffic_facilities_certificate"
+    }
+  },
+  {
+    "id": 98,
+    "persona": "saleh",
+    "category": "كبار السن",
+    "message": "هل بطاقة كبار السن تلقائية؟",
+    "expected": {
+      "intent": "service_question",
+      "targetServiceId": "senior_privilege_card"
+    }
+  },
+  {
+    "id": 99,
+    "persona": "khalid",
+    "category": "عمالة منزلية",
+    "message": "عندي عاملة منزلية وعقدها مو موثق وش اسوي؟",
+    "expected": {
+      "intent": "domestic_worker",
+      "targetServiceId": "domestic_worker_contract_documentation"
+    }
+  },
+  {
+    "id": 100,
+    "persona": "khalid",
+    "category": "خلاف عمالي",
+    "message": "الشركة ما عطتني مستحقاتي بعد ما طلعت",
+    "expected": {
+      "intent": "labor_dispute",
+      "targetServiceId": "labor_settlement"
+    }
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "name": "silah-semantic-ai-poc",
+  "version": "7.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test tests/*.test.js",
+    "preflight": "node scripts/preflight.js",
+    "check": "node scripts/preflight.js && node --test tests/*.test.js",
+    "test:100:http": "node tests/run100_http.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

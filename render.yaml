@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: silah-govtech-prototype
+    runtime: node
+    buildCommand: ""
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: PORT
+        value: 10000

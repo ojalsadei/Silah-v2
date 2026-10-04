@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f6b43">
+  <title>صلة | خدمات تفهم حالتك</title>
+  <meta name="description" content="صلة نموذج تصوري يربط بيانات المستفيد بالقواعد والخدمات، ويفهم أسئلته باللغة الطبيعية دون تحويل الذكاء الاصطناعي إلى جهة قرار.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <button class="brand" data-scroll="chat" aria-label="العودة إلى اسأل صلة">
+        <strong>صلة</strong>
+        <span>الخدمة تبدأ من حالتك</span>
+      </button>
+
+      <nav class="main-nav" aria-label="التنقل الرئيسي">
+        <button class="nav-link active" data-scroll="chat">اسأل صلة</button>
+        <button class="nav-link" data-scroll="impact">الأثر المتوقع</button>
+        <button class="nav-link" data-scroll="services">قاعدة الخدمات</button>
+        <button class="nav-link" data-scroll="benchmark">Benchmark</button>
+        <button class="nav-link" data-scroll="design">كيف صممنا صلة</button>
+      </nav>
+
+      <div class="header-actions">
+        <label class="profile-picker">
+          <span>الحالة التجريبية</span>
+          <select id="profileSelect" aria-label="اختيار الحالة التجريبية"></select>
+        </label>
+        <span id="aiStatus" class="status-pill loading">جار التحقق</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="chat" class="hero-section section-anchor">
+      <div class="shell">
+        <div class="hero-intro">
+          <span class="eyebrow">نموذج تفاعلي تصوري</span>
+          <h1>تكلم بطريقتك<br><span>وصلة يفهم وش يخص حالتك</span></h1>
+          <p>
+            صلة لا ينتظر منك تعرف اسم الخدمة. يبدأ من بياناتك الحالية، يفهم سؤالك أو السيناريو اللي تفكر فيه،
+            ثم يمرر الحالة على قواعد موثقة ويعرض لك فقط النتائج المرتبطة بك.
+          </p>
+        </div>
+
+        <div class="context-bar" aria-label="ملخص بيانات الحالة التجريبية">
+          <div class="context-copy">
+            <span class="micro-label">البيانات المعروفة الآن</span>
+            <strong id="profileHeadline">جار تحميل الحالة</strong>
+          </div>
+          <div id="profileFacts" class="fact-row"></div>
+        </div>
+
+        <div class="chat-card">
+          <div class="chat-topbar">
+            <div>
+              <span class="micro-label">اسأل صلة</span>
+              <h2>ما تحتاج تبدأ من اسم الخدمة</h2>
+              <p>اكتب سؤالك مثل ما تقوله لموظف يعرف ملفك</p>
+            </div>
+            <div class="chat-top-actions">
+              <div class="chat-trust">
+                <span class="trust-dot"></span>
+                <span>النتائج النظامية من محرك قواعد واحد</span>
+              </div>
+              <button id="resetChatButton" class="reset-chat-button" type="button" title="بدء محادثة جديدة بدون تغيير الحالة التجريبية">
+                <span aria-hidden="true">↻</span>
+                محادثة جديدة
+              </button>
+            </div>
+          </div>
+
+          <div id="starterArea" class="starter-area">
+            <div class="starter-copy">
+              <strong>وش ودك تعرف؟</strong>
+              <span>اختر سؤال أو اكتب بطريقتك</span>
+            </div>
+            <div id="suggestions" class="suggestions"></div>
+          </div>
+
+          <div id="messages" class="messages" aria-live="polite"></div>
+
+          <div id="typing" class="typing hidden" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <small>صلة يقرأ السياق ويشغل القواعد</small>
+          </div>
+
+          <form id="chatForm" class="composer">
+            <textarea id="messageInput" rows="1" maxlength="1200" placeholder="اكتب بطريقتك... مثال: جاني شغل بستة ونص ووافقت بس ما باشرت، وش يتغير؟" aria-label="رسالتك إلى صلة"></textarea>
+            <button id="sendButton" type="submit">إرسال</button>
+          </form>
+
+          <div class="composer-note">
+            الشخصيات والبيانات في هذه التجربة افتراضية. القواعد والخدمات مبنية على مصادر رسمية منشورة ولا تمثل قرار أهلية رسمي.
+          </div>
+        </div>
+
+        <div id="miniDashboard" class="mini-dashboard"></div>
+
+        <div class="intelligence-grid">
+          <section class="radar-card" aria-labelledby="radarTitle">
+            <div class="card-heading-row">
+              <div>
+                <span class="micro-label">خريطة صلة</span>
+                <h3 id="radarTitle">وش يعرف عنك النظام، وش اللي يستحق التحقق؟</h3>
+              </div>
+              <span class="quiet-pill">تتغير مع الحالة</span>
+            </div>
+            <div id="serviceRadar" class="service-radar"></div>
+          </section>
+
+          <section id="simulationDock" class="twin-card idle" aria-labelledby="twinTitle">
+            <div class="card-heading-row">
+              <div>
+                <div class="micro-label-with-info">
+                  <span class="micro-label">توأم الحالة</span>
+                  <span class="info-popover">
+                    <button type="button" class="info-trigger" aria-label="شرح توأم الحالة">i</button>
+                    <span class="info-panel" role="tooltip">
+                      <strong>وش يعني Digital Twin في صلة؟</strong>
+                      <span>هو نسخة افتراضية ومؤقتة من حالة المستفيد. إذا قلت مثلا: لو نزل راتبي إلى 4000، صلة لا يغيّر بياناتك الحالية، بل ينسخ الحالة المعروفة ويطبق التغيير على النسخة فقط.</span>
+                      <span>بعدها يشغل نفس محرك القواعد على الحالتين ويقارن الخدمات والآثار. السيناريو يبقى منفصلا عن السجل الحقيقي ولا يتحول إلى تحديث رسمي.</span>
+                    </span>
+                  </span>
+                </div>
+                <h3 id="twinTitle">جرّب قرارك على نسخة افتراضية من حالتك</h3>
+              </div>
+              <span id="twinStatus" class="quiet-pill">جاهز للمحاكاة</span>
+            </div>
+            <div id="simulationContent" class="twin-empty">
+              اكتب مثلا: لو نزل راتبي إلى 4000، أو جاني عرض جديد ووافقت بس ما باشرت
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="impact" class="content-section impact-section section-anchor">
+      <div class="shell">
+        <div class="section-heading split-heading impact-heading">
+          <div>
+            <span class="eyebrow">الأثر المتوقع</span>
+            <h2>صلة ما يضيف قناة جديدة فقط<br><span>يقلل الاحتكاك قبل ما يبدأ الطلب</span></h2>
+            <p>
+              الوزارة تعمل على نطاق رقمي كبير. لذلك قيمة صلة تقاس في تقليل البحث، والأسئلة المتكررة، والرحلات غير المناسبة، وإعادة إدخال البيانات.
+              الأرقام تحت تفصل بين Baseline منشور وبين سيناريو أثر افتراضي للـPoC.
+            </p>
+          </div>
+          <div class="impact-baseline">
+            <div><strong>855</strong><span>خدمة إلكترونية معروضة في إحصاءات الوزارة</span></div>
+            <div><strong>36,687,106</strong><span>معاملة منجزة معروضة في الموقع الرسمي</span></div>
+            <a href="https://www.hrsd.gov.sa/" target="_blank" rel="noopener">الموقع الرسمي للوزارة ↗</a>
+          </div>
+        </div>
+
+        <div class="impact-voice-card">
+          <div class="impact-voice-head">
+            <div>
+              <span class="micro-label">Baseline من صوت المستفيد</span>
+              <h3>وين ممكن يظهر أثر صلة على القنوات الحالية؟</h3>
+              <p>نستخدم أرقام الربع الأول 2026 المنشورة في تقرير صوت المستفيد كنقطة بداية لسيناريو قياس، وليس كتوقع بأن كل التفاعلات قابلة للتخفيض.</p>
+            </div>
+            <a href="https://www.hrsd.gov.sa/ministry/e-participation/beneficiary-voice-reports" target="_blank" rel="noopener">تقارير صوت المستفيد ↗</a>
+          </div>
+          <div class="voice-metrics">
+            <div><strong>738,497</strong><span>إجمالي التفاعلات في الربع</span></div>
+            <div><strong>501,805</strong><span>مكالمات واردة</span></div>
+            <div><strong>43,444</strong><span>شكاوى</span></div>
+            <div><strong>193,248</strong><span>تفاعلات عبر التواصل الاجتماعي</span></div>
+          </div>
+        </div>
+
+        <div class="impact-scenario-card">
+          <div class="impact-scenario-copy">
+            <span class="micro-label">سيناريو أثر، وليس Forecast</span>
+            <h3>لو صلة منع نسبة بسيطة من الاستفسارات التي سببها البحث عن الخدمة</h3>
+            <p>نفترض فقط لأغراض الـPoC أن جزءا من المكالمات الواردة يمكن حله ذاتيا إذا عرف المستفيد الخدمة والأثر من حالته، ونفترض متوسط 6 دقائق للمكالمة. غيّر النسبة وشوف حجم الفرصة.</p>
+            <div id="impactRateButtons" class="impact-rate-buttons">
+              <button type="button" data-impact-rate="0.03">3%</button>
+              <button type="button" data-impact-rate="0.05" class="active">5%</button>
+              <button type="button" data-impact-rate="0.10">10%</button>
+            </div>
+          </div>
+          <div class="impact-scenario-results">
+            <div><small>مكالمات أقل في الربع</small><strong id="impactCallsQuarter">25,090</strong></div>
+            <div><small>ساعات عمل محتملة في الربع</small><strong id="impactHoursQuarter">2,509</strong></div>
+            <div><small>مكالمات أقل سنويا إذا تكرر نفس الحجم</small><strong id="impactCallsYear">100,360</strong></div>
+          </div>
+          <div class="impact-assumption">الحسبة: 501,805 مكالمة ربع سنوية × النسبة المختارة. ساعات العمل تفترض 6 دقائق لكل مكالمة. هذا نموذج حساسية لقياس الفرصة فقط، وليس وعدا أو توقعا تشغيليا.</div>
+        </div>
+
+        <details class="impact-method-details">
+          <summary>
+            <span><b>كيف نثبت أثر صلة في PoC؟</b><small>مؤشرات القياس وخطوات المقارنة قبل وبعد</small></span>
+          </summary>
+          <div class="impact-method-body">
+            <div class="impact-outcomes">
+              <article><span>↓</span><b>وقت الوصول للخدمة المناسبة</b><p>من أول سؤال حتى معرفة الخدمة أو الإجراء المرتبط بالحالة</p></article>
+              <article><span>↓</span><b>الرحلات غير المناسبة قبل التقديم</b><p>نكتشف عدم الارتباط أو نقص البيانات قبل دخول المستفيد في رحلة كاملة</p></article>
+              <article><span>↓</span><b>إعادة إدخال بيانات موجودة</b><p>نستخدم الملف المعروف ونطلب فقط المعلومة التي تغير النتيجة</p></article>
+              <article><span>↑</span><b>اكتشاف خدمات بدون معرفة اسمها</b><p>الخدمة تظهر بسبب الحالة أو الحدث، مو لأن المستفيد عرف المصطلح الحكومي</p></article>
+              <article><span>↑</span><b>الحل الذاتي للاستفسار</b><p>المستفيد يفهم الخدمة والسبب والمعلومة الناقصة قبل التحويل لقناة دعم</p></article>
+              <article><span>↑</span><b>وضوح أثر القرار قبل حدوثه</b><p>Digital Twin يسمح بمقارنة الحالة الحالية بالسيناريو بدون تغيير السجل الحقيقي</p></article>
+            </div>
+
+            <div class="impact-scorecard">
+              <div class="scorecard-copy">
+                <span class="micro-label">كيف نثبت الأثر في PoC</span>
+                <h3>Baseline قبل صلة، ثم نفس الرحلات بعد صلة</h3>
+                <p>بدل وضع نسبة نجاح من عندنا، نختار أحداثا عالية القيمة ونقيس الوقت والدقة وعدد الأسئلة والتحويلات قبل التجربة وبعدها.</p>
+              </div>
+              <div class="scorecard-steps">
+                <div><b>1</b><span>اختر 3 أحداث عالية القيمة</span></div>
+                <div><b>2</b><span>قِس الرحلة الحالية</span></div>
+                <div><b>3</b><span>شغل نفس الحالات على صلة</span></div>
+                <div><b>4</b><span>قارن النتائج بالقنوات الحالية</span></div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="services" class="content-section section-anchor">
+      <div class="shell">
+        <div class="section-heading split-heading">
+          <div>
+            <span class="eyebrow">قاعدة صلة</span>
+            <h2>الخدمة ما هي بطاقة فقط<br><span>خلفها بيانات وشروط ومصدر</span></h2>
+            <p>
+              درسنا خدمات من الوزارة ومن منظومة الموارد البشرية مثل صندوق تنمية الموارد البشرية، وربطنا كل خدمة بالبيانات المطلوبة وإشارات الظهور والشروط المنشورة.
+              القائمة هنا مختصرة حتى ما تتحول المنصة إلى كتالوج طويل. اضغط أي خدمة لفتح تفاصيلها وقواعدها ومصدرها.
+            </p>
+          </div>
+          <div class="catalog-summary">
+            <strong id="serviceCount">0</strong>
+            <span>خدمة مدروسة في النموذج</span>
+          </div>
+        </div>
+
+        <div id="serviceFilters" class="filter-row"></div>
+        <div id="serviceGrid" class="service-grid service-grid-compact"></div>
+        <div class="service-library-actions"><button id="serviceExpand" type="button" class="service-expand">عرض كل الخدمات</button></div>
+
+        <div id="serviceModal" class="service-modal hidden" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
+          <button class="service-modal-backdrop" type="button" data-close-service aria-label="إغلاق تفاصيل الخدمة"></button>
+          <article class="service-modal-panel">
+            <button class="service-modal-close" type="button" data-close-service aria-label="إغلاق">×</button>
+            <div id="serviceModalContent"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="benchmark" class="content-section benchmark-section section-anchor">
+      <div class="shell">
+        <div class="section-heading split-heading benchmark-heading">
+          <div>
+            <span class="eyebrow">Benchmark</span>
+            <h2>درسنا التجربة، مو شكل الواجهة<br><span>وحوّلنا الدروس إلى قرارات في صلة</span></h2>
+            <p>
+              كل بطاقة تحت تمثل تجربة حكومية مختلفة. الصفحة تعرض الخلاصة فقط حتى تبقى خفيفة.
+              اضغط على اسم التجربة لفتح القصة كاملة: ليش بدأت، وش بنوا، وش النتائج، وش طبقنا في صلة، وأين كانت المخاطر.
+            </p>
+          </div>
+          <div class="benchmark-summary-note">
+            <strong>5</strong>
+            <span>تجارب حكومية<br>بأنماط مختلفة</span>
+          </div>
+        </div>
+
+        <div id="benchmarkGrid" class="benchmark-compact-grid"></div>
+
+        <div class="applied-strip">
+          <div class="applied-strip-head">
+            <span class="micro-label">وش طبقناه فعليا في صلة</span>
+            <p>خلاصة التصميم المستفاد من التجارب، بدون نسخ أي تجربة كما هي</p>
+          </div>
+          <div class="applied-patterns">
+            <div><b>LifeSG</b><span>ابدأ من حالة المستفيد ومرحلة حياته</span></div>
+            <div><b>Estonia</b><span>الحدث يجمع أكثر من خدمة في رحلة واحدة</span></div>
+            <div><b>France</b><span>افصل المحاكاة عن البيانات الرسمية</span></div>
+            <div><b>Tell Us Once</b><span>التغيير الواحد قد يؤثر على جهات متعددة</span></div>
+            <div><b>myGov</b><span>Data Mapping وحالة التنفيذ قبل الواجهة الذكية</span></div>
+          </div>
+        </div>
+
+        <details class="benchmark-matrix-details">
+          <summary>عرض مقارنة القدرات بين التجارب</summary>
+          <div id="benchmarkMatrix" class="benchmark-matrix"></div>
+        </details>
+
+        <details class="benchmark-insights-details">
+          <summary>
+            <span><b>قراءة التصميم</b><small>وش نأخذ، وش نحافظ عليه، وش نتجنب</small></span>
+          </summary>
+          <div id="benchmarkLessons" class="benchmark-lessons"></div>
+        </details>
+
+        <div id="benchmarkModal" class="service-modal benchmark-modal hidden" role="dialog" aria-modal="true" aria-labelledby="benchmarkModalTitle">
+          <button class="service-modal-backdrop" type="button" data-close-benchmark aria-label="إغلاق تفاصيل التجربة"></button>
+          <article class="service-modal-panel benchmark-modal-panel">
+            <button class="service-modal-close" type="button" data-close-benchmark aria-label="إغلاق">×</button>
+            <div id="benchmarkModalContent"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="design" class="content-section design-section section-anchor">
+      <div class="shell">
+        <div class="section-heading">
+          <span class="eyebrow">كيف صممنا صلة</span>
+          <h2>الذكاء في صلة مو في الرد الطويل<br><span>الذكاء في فصل الأدوار صح</span></h2>
+          <p>
+            صلة مصمم كقدرة مشتركة يمكن وضعها في التطبيق أو الموقع أو أي قناة لاحقة. واجهة المحادثة مجرد مدخل،
+            أما القرار التشغيلي فيمر على نفس البيانات ونفس القواعد في كل مرة.
+          </p>
+        </div>
+
+        <div class="architecture-card">
+          <div class="architecture-copy">
+            <span class="micro-label">المسار التشغيلي</span>
+            <h3>من كلام المستفيد إلى نتيجة قابلة للتفسير</h3>
+            <p>
+              طبقة فهم اللغة تستخرج المقصود والمتغيرات فقط. ملف المستفيد يكمل المعلومات المعروفة.
+              محرك القواعد يقرر النتائج المرتبطة، ثم طبقة الصياغة تشرحها بلغة واضحة دون اختراع شروط جديدة.
+            </p>
+          </div>
+          <div class="architecture-flow" aria-label="مخطط بنية صلة">
+            <div class="flow-node"><small>1</small><b>كلام المستفيد</b><span>لغة طبيعية</span></div>
+            <i>←</i>
+            <div class="flow-node"><small>2</small><b>فهم المقصود</b><span>نية ومتغيرات</span></div>
+            <i>←</i>
+            <div class="flow-node"><small>3</small><b>سياق المستفيد</b><span>بيانات معروفة</span></div>
+            <i>←</i>
+            <div class="flow-node core"><small>4</small><b>محرك القواعد</b><span>مصدر القرار</span></div>
+            <i>←</i>
+            <div class="flow-node"><small>5</small><b>شرح النتيجة</b><span>واضح ومفسر</span></div>
+          </div>
+        </div>
+
+        <div id="principlesGrid" class="principles-grid"></div>
+
+        <div class="signature-card">
+          <div>
+            <span class="micro-label">فكرة صلة المميزة</span>
+            <h3>توأم الحالة، محاكاة منفصلة عن الحقيقة</h3>
+            <p>
+              إذا كتب المستفيد سيناريو مستقبلي، صلة لا يغير ملفه الحقيقي. ينشئ نسخة افتراضية من الحالة،
+              يشغل عليها نفس محرك القواعد، ثم يقارن وش بقي كما هو وش الخدمات التي قد تتأثر.
+              نفس المحادثة تقدر تكمل السيناريو خطوة بخطوة بدون إعادة القصة من البداية.
+            </p>
+          </div>
+          <div class="signature-flow">
+            <span>حالتي الحالية</span>
+            <i>←</i>
+            <strong>نسخة افتراضية</strong>
+            <i>←</i>
+            <span>فرق الخدمات والآثار</span>
+          </div>
+        </div>
+
+        <div class="build-next-card">
+          <div>
+            <span class="micro-label">لو تحولت من PoC إلى منتج</span>
+            <h3>وش يحتاج الفريق الحقيقي؟</h3>
+            <p>
+              نفس الفكرة الحالية، لكن بدل البيانات التجريبية نربط مصادر الوزارة، وبدل ملفات JSON تصبح القواعد كتالوجًا محكومًا بمالكين وإصدارات ومراجعة مستمرة.
+            </p>
+          </div>
+          <div class="next-grid">
+            <article><b>Data Map</b><span>مصدر كل معلومة وحداثتها وصلاحية استخدامها</span></article>
+            <article><b>Event Model</b><span>ما الذي تغيّر ومتى أصبح نافذًا</span></article>
+            <article><b>Rules Catalog</b><span>قاعدة موثقة لكل خدمة مع مالك وتاريخ إصدار</span></article>
+            <article><b>Integration API</b><span>محرك واحد يخدم التطبيق والموقع والشات</span></article>
+            <article><b>AI Orchestration</b><span>فهم اللغة وطلب المعلومة الناقصة وشرح النتائج</span></article>
+            <article><b>Governance & Evals</b><span>اختبارات منطق ومراقبة جودة وتدقيق للنتائج</span></article>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-inner">
+      <div>
+        <strong>صلة</strong>
+        <span>نموذج تصوري لخدمة تبدأ من حالة المستفيد</span>
+      </div>
+      <div class="footer-links">
+        <span>المصادر داخل كل نتيجة وكل خدمة</span>
+        <a href="https://ojalsadei.github.io/my-portfolio/" target="_blank" rel="noopener">Osama Alsadei · Portfolio</a>
+      </div>
+    </div>
+  </footer>
+
+  <template id="messageTemplate">
+    <article class="message">
+      <div class="message-body"></div>
+    </article>
+  </template>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
