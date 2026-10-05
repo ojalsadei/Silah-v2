@@ -3,7 +3,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(here, '..');
+
+const rootCandidates = [
+  path.resolve(here, '..'),
+  process.cwd(),
+  path.resolve(here, '..', '..')
+];
+
+const root =
+  rootCandidates.find(candidate =>
+    fs.existsSync(path.join(candidate, 'data', 'services.json'))
+  ) || path.resolve(here, '..');
 
 function readJson(relativePath) {
   const full = path.join(root, relativePath);
@@ -15,8 +25,13 @@ export const personas = readJson('data/personas.json');
 export const benchmarks = readJson('data/benchmarks.json');
 export const languageGlossary = readJson('data/language_glossary.json');
 
-export const serviceById = Object.fromEntries(services.map(service => [service.id, service]));
-export const personaById = Object.fromEntries(personas.map(persona => [persona.id, persona]));
+export const serviceById = Object.fromEntries(
+  services.map(service => [service.id, service])
+);
+
+export const personaById = Object.fromEntries(
+  personas.map(persona => [persona.id, persona])
+);
 
 export function compactServiceCatalog() {
   return services.map(service => ({
