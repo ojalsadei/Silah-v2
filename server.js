@@ -492,7 +492,7 @@ function serveStatic(req, res, pathname) {
   res.end(content);
 }
 
-const server = http.createServer(async (req, res) => {
+export async function handleRequest(req, res) {
   try {
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     const pathname = url.pathname;
@@ -559,9 +559,15 @@ const server = http.createServer(async (req, res) => {
     console.error(error);
     return json(res, 500, { error: 'حدث خطأ غير متوقع في الخادم' });
   }
-});
+}
 
-server.listen(port, () => {
-  console.log(`Silah running on http://localhost:${port}`);
-  console.log(`AI mode: ${hasAiKey() ? 'enabled' : 'fallback demo'}`);
-});
+const server = http.createServer(handleRequest);
+const entryPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+const isDirectRun = entryPath === fileURLToPath(import.meta.url);
+
+if (isDirectRun) {
+  server.listen(port, () => {
+    console.log(`Silah running on http://localhost:${port}`);
+    console.log(`AI mode: ${hasAiKey() ? 'enabled' : 'fallback demo'}`);
+  });
+}

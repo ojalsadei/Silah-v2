@@ -22,6 +22,31 @@ http://localhost:3000
 
 إذا كان المنفذ مستخدما، غير `PORT` داخل `.env` إلى 3001 مثلا.
 
+## النشر المجاني على Netlify
+
+النسخة الحالية مجهزة لنشر الواجهة والـAPI معا على Netlify من نفس مستودع GitHub.
+
+- `public` هو مجلد الواجهة المنشورة
+- `netlify/functions/api.mjs` يشغل API الخاص بصلة كـNetlify Function
+- `netlify.toml` يربط `/api/*` بالـFunction ويضم ملفات البيانات المطلوبة
+- `server.js` يبقى المصدر الفعلي لمنطق الخادم محليا وعلى Netlify
+- التشغيل المحلي يبقى كما هو عبر `npm start`
+- لا ترفع `.env` إلى GitHub
+
+في إعدادات Netlify استخدم فرع `main`، واترك Base directory فارغا، واترك Build command فارغا، واجعل Publish directory هو `public`. مجلد Functions الافتراضي هو `netlify/functions` ومثبت أيضا داخل `netlify.toml`.
+
+أضف متغيرات البيئة التالية وتأكد أن نطاقها يشمل Functions:
+
+```text
+GROQ_API_KEY=مفتاحك
+GROQ_MODEL=openai/gpt-oss-20b
+GROQ_TIMEOUT_MS=8500
+```
+
+لا تضف `PORT` في Netlify. بعد كل Push إلى `main` ينشأ Deploy جديد تلقائيا إذا كان المشروع مربوطا بالمستودع.
+
+بعد النشر افتح `/api/health` على رابط Netlify. إذا كانت `aiEnabled` تساوي `true` فمفتاح Groq متاح للـFunction.
+
 ## واجهة العرض V7
 
 V7 لا تغير قواعد V6، بل تجعل العرض التنفيذي أقصر وأوضح بدون حذف المحتوى:

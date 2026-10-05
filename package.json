@@ -12,6 +12,6 @@
     "test:100:http": "node tests/run100_http.mjs"
   },
   "engines": {
-  "node": "24.x"
+    "node": "24.x"
   }
 }

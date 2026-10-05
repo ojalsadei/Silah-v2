@@ -43,8 +43,21 @@ git push -u origin main
 3. تأكد أن `.env` داخل `.gitignore`
 4. لا تستخدم المفتاح القديم مرة ثانية
 
-## GitHub Pages
+## النشر الحي المجاني
 
-GitHub Pages يشغل ملفات Frontend ثابتة فقط. صلة يعتمد على `server.js` وGroq API، لذلك رفع الكود إلى GitHub طبيعي، لكن النسخة الحية تحتاج استضافة تشغل Node.js.
+GitHub Pages وحده لا يناسب صلة لأن المشروع يحتوي Backend وGroq API. النسخة الحالية مجهزة للنشر على Netlify مباشرة من نفس المستودع.
 
-المجلد يحتوي `render.yaml` كخيار جاهز للنشر على Render. بعد ربط المستودع بالخدمة، أضف `GROQ_API_KEY` كمتغير بيئة في لوحة الاستضافة. لا تضع المفتاح داخل GitHub.
+في Netlify:
+
+1. استورد مستودع `Silah-v2`
+2. استخدم فرع `main` للإنتاج
+3. Publish directory: `public`
+4. Functions directory: `netlify/functions`
+5. أضف `GROQ_API_KEY` في Environment Variables مع نطاق يشمل Functions
+6. أضف `GROQ_MODEL=openai/gpt-oss-20b`
+7. أضف `GROQ_TIMEOUT_MS=8500`
+8. لا تضف `.env` إلى GitHub ولا تضع المفتاح داخل أي ملف عام
+
+`netlify.toml` يربط مسارات `/api/*` بالـFunction، و`netlify/functions/api.mjs` يعيد استخدام نفس `server.js` المستخدم محليا.
+
+يبقى `render.yaml` داخل المشروع فقط للتوافق مع الاستضافة السابقة ويمكن حذفه لاحقا بعد التأكد من نجاح Netlify إذا لم تعد تحتاج Render.

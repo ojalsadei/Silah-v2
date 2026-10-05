@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ignoredDirs = new Set(['.git', 'node_modules', 'coverage']);
 const ignoredFiles = new Set(['.env']);
-const textExtensions = new Set(['.js', '.json', '.html', '.css', '.md', '.txt', '.yml', '.yaml', '.example', '.gitignore', '.cmd']);
+const textExtensions = new Set(['.js', '.mjs', '.ts', '.json', '.html', '.css', '.md', '.txt', '.yml', '.yaml', '.example', '.gitignore', '.cmd', '.toml']);
 const problems = [];
 
 function isTextFile(file) {
@@ -58,18 +58,3 @@ if (problems.length) {
 }
 
 console.log('Preflight passed: no committed .env target, no obvious API key leak, and no banned dash characters found.');
-
-const textExtensions = new Set([
-  '.js',
-  '.ts',
-  '.json',
-  '.html',
-  '.css',
-  '.md',
-  '.txt',
-  '.yml',
-  '.yaml',
-  '.example',
-  '.gitignore',
-  '.cmd'
-]);
