@@ -58,3 +58,18 @@ if (problems.length) {
 }
 
 console.log('Preflight passed: no committed .env target, no obvious API key leak, and no banned dash characters found.');
+
+const textExtensions = new Set([
+  '.js',
+  '.ts',
+  '.json',
+  '.html',
+  '.css',
+  '.md',
+  '.txt',
+  '.yml',
+  '.yaml',
+  '.example',
+  '.gitignore',
+  '.cmd'
+]);
